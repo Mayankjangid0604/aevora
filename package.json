@@ -1,0 +1,25 @@
+{
+  "name": "aevora",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@9.5.1",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e:model": "ts-node --project apps/api/tsconfig.json scripts/test-model-development.ts",
+    "burn-in": "ts-node scripts/burn-in.ts",
+    "first-customer": "ts-node scripts/first-customer.ts",
+    "report": "ts-node scripts/management-report.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  }
+}
