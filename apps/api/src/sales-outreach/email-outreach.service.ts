@@ -103,4 +103,34 @@ export class EmailOutreachService {
       });
     }
   }
+
+  /** Second-touch email for an earlier campaign. Idempotent per source campaign (`followup:<campaignId>`). */
+  async sendFollowUp(companyId: string, lead: SalesLead, sourceCampaignId: string, template: { subjectTemplate: string; bodyTemplate: string }, agentId?: string) {
+    if (!lead.contactEmail) throw new Error(`Lead ${lead.id} has no email`);
+    if (lead.companyId !== companyId) throw new Error('Lead does not belong to company');
+    if (await isKilled(this.prisma, companyId, ['GLOBAL_PRODUCTION', 'OUTBOUND_EMAIL', 'SALES_OUTREACH'])) {
+      throw new Error('Outbound email blocked by kill switch');
+    }
+    const idempotencyKey = `followup:${sourceCampaignId}`;
+    let campaign;
+    try {
+      campaign = await this.prisma.outreachCampaign.create({
+        data: { companyId, leadId: lead.id, channel: 'EMAIL', assignedAgentId: agentId, idempotencyKey, notes: `Follow-up to campaign ${sourceCampaignId}` },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return null; // already followed up
+      throw e;
+    }
+    const vars = templateVars(lead);
+    try {
+      await this.integration.sendEmail(companyId, outreachEnv(), {
+        to: lead.contactEmail,
+        subject: renderTemplate(template.subjectTemplate, vars),
+        body: renderTemplate(template.bodyTemplate, vars),
+      }, agentId);
+      return this.prisma.outreachCampaign.update({ where: { id: campaign.id }, data: { status: 'SENT', sentAt: new Date() } });
+    } catch (e) {
+      return this.prisma.outreachCampaign.update({ where: { id: campaign.id }, data: { status: 'FAILED', error: e.message } });
+    }
+  }
 }

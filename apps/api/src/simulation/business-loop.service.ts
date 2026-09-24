@@ -5,6 +5,7 @@ import { LeadGenService } from '../lead-gen/lead-gen.service';
 import { SalesAgentWorker } from '../sales-outreach/sales-agent.worker';
 import { DeliveryAgentWorker } from '../delivery/delivery-agent.worker';
 import { InvoiceAndPaymentService } from '../delivery/invoice-payment.service';
+import { CeoReviewService } from '../ceo/ceo-review.service';
 
 const HOUR = 3_600_000;
 export const WORK_BLOCKING_FEATURES = ['GLOBAL_PRODUCTION', 'AGENT_WORK_CYCLES'];
@@ -12,8 +13,8 @@ export const WORK_BLOCKING_FEATURES = ['GLOBAL_PRODUCTION', 'AGENT_WORK_CYCLES']
 /**
  * FIND → CONTACT → DISCOVER → BUILD → DELIVER → COLLECT → REPEAT, per company:
  *   1 survival (SHUTDOWN stops the company here)  2 lead gen (every LEAD_GEN_INTERVAL_HOURS)
- *   3 sales outreach  4 delivery  5 payment follow-ups
- * Voice commands (6) execute synchronously on request; venture agents (7) get work cycles
+ *   3 sales outreach  4 delivery  5 payment follow-ups  6 CEO review (once per simulation hour)
+ * Voice commands execute synchronously on request; venture agents get work cycles
  * from the simulation tick once survival allows it.
  *
  * Driven from the simulation tick but throttled on REAL time and never awaited by the tick:
@@ -32,6 +33,7 @@ export class BusinessLoopService {
     private readonly sales: SalesAgentWorker,
     private readonly delivery: DeliveryAgentWorker,
     private readonly payments: InvoiceAndPaymentService,
+    private readonly ceo: CeoReviewService,
   ) {}
 
   /** Called every tick. Starts a background pass when due; returns immediately. */
@@ -63,6 +65,10 @@ export class BusinessLoopService {
     result.sales = await this.step(companyId, 'sales', () => this.sales.processQueue(companyId));
     result.delivery = await this.step(companyId, 'delivery', () => this.delivery.processQueue(companyId));
     result.paymentReminders = await this.step(companyId, 'payments', () => this.payments.check(companyId));
+    result.ceoReview = await this.step(companyId, 'ceo-review', async () => {
+      const r = await this.ceo.runIfDue(companyId);
+      return typeof r === 'string' ? r : { reviewId: r.id };
+    });
     return result;
   }
 

@@ -10,9 +10,10 @@ import { LeadGenModule } from '../lead-gen/lead-gen.module';
 import { SalesOutreachModule } from '../sales-outreach/sales-outreach.module';
 import { DeliveryModule } from '../delivery/delivery.module';
 import { BusinessLoopService } from './business-loop.service';
+import { CeoModule } from '../ceo/ceo.module';
 
 @Module({
-  imports: [forwardRef(() => AgentModule), SurvivalModule, LeadGenModule, SalesOutreachModule, DeliveryModule],
+  imports: [forwardRef(() => AgentModule), SurvivalModule, LeadGenModule, SalesOutreachModule, DeliveryModule, CeoModule],
   controllers: [SimulationController],
   providers: [SimulationService, SimulationEngineService, BusinessLoopService, PrismaService],
   exports: [SimulationService, SimulationEngineService, BusinessLoopService],

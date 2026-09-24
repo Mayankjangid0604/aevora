@@ -5,6 +5,7 @@ export interface LeadSearchQuery {
   location: string;
   radius?: number;
   maxResults?: number;
+  variant?: string; // query prefix, e.g. "best" — lets a high-weight category search twice without repeating itself
 }
 
 export interface FoundLead {
@@ -51,7 +52,7 @@ export class LeadSearchService {
       return this.mock(q, max).filter((l) => !knownPlaceIds.has(l.googlePlaceId));
     }
 
-    const body: any = { textQuery: `${q.category} in ${q.location}`, maxResultCount: max };
+    const body: any = { textQuery: `${q.variant ? `${q.variant} ` : ''}${q.category} in ${q.location}`, maxResultCount: max };
     if (q.radius) {
       const center = await this.places({ textQuery: q.location, maxResultCount: 1 });
       const loc = center[0]?.location;
@@ -107,7 +108,7 @@ export class LeadSearchService {
   private mock(q: LeadSearchQuery, max: number): FoundLead[] {
     return Array.from({ length: Math.min(max, 5) }, (_, i) => {
       const lead = {
-        googlePlaceId: `mock-${q.category}-${q.location}-${i}`.replace(/\s+/g, '_'),
+        googlePlaceId: `mock-${q.variant ? `${q.variant}-` : ''}${q.category}-${q.location}-${i}`.replace(/\s+/g, '_'),
         businessName: `${q.category[0].toUpperCase()}${q.category.slice(1)} ${['Palace', 'Corner', 'Hub', 'Point', 'Express'][i]}`,
         category: q.category,
         location: q.location,

@@ -14,14 +14,15 @@ function setup(alive: boolean, lastRunAgoMs: number | null) {
   const sales: any = { processQueue: jest.fn(async () => { calls.push('sales'); throw new Error('smtp down'); }) };
   const delivery: any = { processQueue: jest.fn(async () => { calls.push('delivery'); return {}; }) };
   const payments: any = { check: jest.fn(async () => { calls.push('payments'); return 0; }) };
-  return { svc: new BusinessLoopService(prisma, survival, leadGen, sales, delivery, payments), calls, leadGen };
+  const ceo: any = { runIfDue: jest.fn(async () => { calls.push('ceo'); return 'not_due'; }) };
+  return { svc: new BusinessLoopService(prisma, survival, leadGen, sales, delivery, payments, ceo), calls, leadGen };
 }
 
 describe('BusinessLoopService', () => {
   it('runs steps in order and a failing step does not stop the rest', async () => {
     const { svc, calls } = setup(true, null);
     const r: any = await svc.runCompany('c1');
-    expect(calls).toEqual(['survival', 'leadGen', 'sales', 'delivery', 'payments']);
+    expect(calls).toEqual(['survival', 'leadGen', 'sales', 'delivery', 'payments', 'ceo']);
     expect(r.sales).toEqual({ error: 'smtp down' });
   });
 

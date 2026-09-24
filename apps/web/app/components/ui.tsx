@@ -11,7 +11,7 @@ export function formatINR(paise: number | null | undefined): string {
 
 export function formatINRWhole(paise: number | null | undefined): string {
   if (paise === null || paise === undefined) return '—';
-  return `₹${paise.toLocaleString('en-IN')}`;
+  return `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
 }
 
 export function formatAC(amount: number | null | undefined): string {

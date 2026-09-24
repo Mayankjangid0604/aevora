@@ -240,6 +240,10 @@ model Company {
   voiceSessions              VoiceSession[]
   voiceCommands              VoiceCommand[]
   ventures                   Venture[]
+  ceoReviews                 CeoReview[]
+  leadGenConfig              LeadGenConfig?
+  weeklyReports              WeeklyReport[]
+  ceoQuestions               CeoQuestion[]
 }
 
 enum RoleAccessLevel {
@@ -3150,16 +3154,19 @@ model OutreachCampaign {
 }
 
 model OutreachScript {
-  id              String          @id @default(uuid())
-  companyId       String
-  company         Company         @relation(fields: [companyId], references: [id])
-  channel         OutreachChannel
-  templateName    String
-  subjectTemplate String?
-  bodyTemplate    String
-  isActive        Boolean         @default(true)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id               String          @id @default(uuid())
+  companyId        String
+  company          Company         @relation(fields: [companyId], references: [id])
+  channel          OutreachChannel
+  templateName     String
+  subjectTemplate  String?
+  bodyTemplate     String
+  isActive         Boolean         @default(true)
+  parentId         String? // script this version was rewritten from (A/B lineage)
+  evaluatedAtCount Int             @default(0) // campaign count at the last optimizer evaluation
+  responseRatePct  Int? // positive-response % measured at that evaluation
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@unique([companyId, templateName])
 }
@@ -3203,31 +3210,34 @@ enum ClientProjectStatus {
 }
 
 model ClientProject {
-  id              String              @id @default(uuid())
-  companyId       String
-  company         Company             @relation(fields: [companyId], references: [id])
-  leadId          String
-  lead            SalesLead           @relation(fields: [leadId], references: [id])
-  discoveryCallId String?             @unique
-  clientId        String?
-  projectType     ClientProjectType
-  requirements    Json                @default("{}")
-  scope           Json?
-  status          ClientProjectStatus @default(SCOPING)
-  sampleHtml      String?
-  sampleUrl       String?
-  finalUrl        String?
-  revisionCount   Int                 @default(0)
-  quotedAmount    Int? // paise
-  invoiceId       String?             @unique
-  paymentLinkUrl  String?
-  paymentRef      String?
-  lastReminderAt  DateTime?
-  paidAt          DateTime?
-  error           String?
-  idempotencyKey  String              @unique
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id                  String              @id @default(uuid())
+  companyId           String
+  company             Company             @relation(fields: [companyId], references: [id])
+  leadId              String
+  lead                SalesLead           @relation(fields: [leadId], references: [id])
+  discoveryCallId     String?             @unique
+  clientId            String?
+  projectType         ClientProjectType
+  requirements        Json                @default("{}")
+  scope               Json?
+  status              ClientProjectStatus @default(SCOPING)
+  sampleHtml          String?
+  sampleUrl           String?
+  finalUrl            String?
+  revisionCount       Int                 @default(0)
+  quotedAmount        Int? // paise
+  invoiceId           String?             @unique
+  paymentLinkUrl      String?
+  paymentRef          String?
+  lastReminderAt      DateTime?
+  paidAt              DateTime?
+  error               String?
+  ceoFollowUpAt       DateTime? // CEO nudged a stale SAMPLE_SENT project
+  referralRequestedAt DateTime? // CEO asked a paying client for an introduction
+  ceoNotes            String? // e.g. discount offered, pending Chairman approval
+  idempotencyKey      String              @unique
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   @@index([companyId, status])
 }
@@ -3344,6 +3354,94 @@ model VentureTeam {
 
   @@unique([ventureId, employeeId])
   @@index([employeeId])
+}
+
+model CeoReview {
+  id                String   @id @default(uuid())
+  companyId         String
+  company           Company  @relation(fields: [companyId], references: [id])
+  ceoEmployeeId     String
+  simHour           String // simulation date-hour key, e.g. 2026-09-24T09 — one review per sim hour
+  reviewedAt        DateTime @default(now())
+  leadsFound        Int      @default(0)
+  leadsContacted    Int      @default(0)
+  leadsQualified    Int      @default(0)
+  dealsInProgress   Int      @default(0)
+  paidThisWeek      Int      @default(0) // paise
+  balancePaise      Int      @default(0)
+  survivalStatus    String
+  topRisk           String
+  topOpportunity    String
+  decisionsProposed Json     @default("[]") // [{type, reason, parameters, outcome, detail}]
+  weeklyReport      String
+  sentToChairman    Boolean  @default(false)
+
+  @@unique([companyId, simHour])
+  @@index([companyId, reviewedAt])
+}
+
+/// Company-level lead-gen targeting, editable by the CEO; falls back to LEAD_GEN_CATEGORIES env.
+model LeadGenConfig {
+  id         String   @id @default(uuid())
+  companyId  String   @unique
+  company    Company  @relation(fields: [companyId], references: [id])
+  categories String[]
+  weights    Json     @default("{}") // category → searches per cycle (1 default, 2 for high converters)
+  dropped    String[] // categories the CEO dropped for poor conversion; never re-added automatically
+  updatedBy  String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
+model WeeklyReport {
+  id                    String    @id @default(uuid())
+  companyId             String
+  company               Company   @relation(fields: [companyId], references: [id])
+  ceoEmployeeId         String
+  weekStartDate         DateTime // Monday 00:00 (simulation calendar) of the week reported on
+  weekEndDate           DateTime
+  leadsFoundCount       Int       @default(0)
+  leadsContactedCount   Int       @default(0)
+  dealsWonCount         Int       @default(0)
+  revenueEarnedPaise    Int       @default(0)
+  topPerformingCategory String?
+  biggestChallenge      String
+  ceoCommentary         String
+  sentAt                DateTime?
+  createdAt             DateTime  @default(now())
+
+  @@unique([companyId, weekStartDate])
+  @@index([companyId, createdAt])
+}
+
+enum CeoQuestionUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CeoQuestionStatus {
+  OPEN // waiting for the Chairman
+  ANSWERED // answered, not yet read by the CEO
+  USED // CEO folded the answer into a review
+  EXPIRED
+}
+
+model CeoQuestion {
+  id             String             @id @default(uuid())
+  companyId      String
+  company        Company            @relation(fields: [companyId], references: [id])
+  ceoReviewId    String?
+  question       String
+  context        Json               @default("{}")
+  urgency        CeoQuestionUrgency @default(MEDIUM)
+  status         CeoQuestionStatus  @default(OPEN)
+  askedAt        DateTime           @default(now())
+  answeredAt     DateTime?
+  chairmanAnswer String?
+  usedAt         DateTime?
+
+  @@index([companyId, status])
 }
 
 model TargetAccount {

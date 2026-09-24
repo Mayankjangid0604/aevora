@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { API_BASE, authHeaders } from '../lib/api';
 
 interface Product {
   id: string; name: string; description?: string; lifecycle: string;
@@ -70,7 +71,7 @@ export default function ProductFactoryPage() {
   const [ideaForm, setIdeaForm] = useState({ title: '', problemStatement: '', proposedSolution: '', originatingSource: '' });
 
   const api = (path: string, opts?: RequestInit) =>
-    fetch(`/api/product-factory${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    fetch(`${API_BASE}/product-factory${path}`, { ...opts, headers: { ...authHeaders(), ...(opts?.headers ?? {}) } });
 
   const loadProducts = useCallback(() => {
     setLoading(true);

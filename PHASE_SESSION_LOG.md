@@ -1,7 +1,7 @@
 # AEVORA Session Log
 
 ## Last Updated
-2026-09-24 — Phase 42 COMPLETE (Steps 1–10)
+2026-09-24 — Phase 43 COMPLETE (43-1 … 43-6) (Phase 42 complete)
 
 ## Completed Steps
 - [x] Step 1 — Auth Guard Fix
@@ -15,8 +15,16 @@
 - [x] Step 9 — Web Dashboard Updates
 - [x] Step 10 — Wire the Loop
 
+## Phase 43 — The Thinking CEO
+- [x] 43-1 CEO Business Review Cycle
+- [x] 43-2 Proactive Pipeline Management
+- [x] 43-3 Weekly Report to Chairman
+- [x] 43-4 Self-Improvement Loop
+- [x] 43-5 Chairman Notification Feed
+- [x] 43-6 CEO ↔ Chairman Dialogue
+
 ## Current Step
-Phase 42 done — next: first live run against a real DB (see below)
+Phase 43 done — next: live run against a real DB (see below)
 
 ## What was done this session
 ### Step 1
@@ -92,20 +100,73 @@ Phase 42 done — next: first live run against a real DB (see below)
 - Removed per-service timers + `processAll` + unused `startAutonomousLeadGen`; payment reminders moved out of the delivery worker into the loop. Obsolete env vars removed; added `BUSINESS_LOOP_INTERVAL_MS`.
 - Verified: tsc clean; 36 suites / 104 tests (new `business-loop.service.spec.ts`: order, shutdown stop, lead-gen due/conflict, throttle); `nest build` + boot with an unreachable DB: every module's DI resolves and all new routes map (stops only at Prisma connect).
 
+### Step 43-1
+- New module `apps/api/src/ceo/` (not `agent/`: AgentModule has a forwardRef cycle with Simulation; CEO needs LeadGen/Task/Ventures).
+- Models `CeoReview` (+ `simHour` key, `@@unique([companyId, simHour])` = one review per sim hour, idempotent) and `LeadGenConfig` (CEO-editable categories; `LeadGenService.categoriesFor` prefers it over env). Migration `20260926000000_phase43_step1_ceo_review`.
+- `CeoReviewService.runIfDue` (from BusinessLoopService step 6): CEO = first ACTIVE employee with CEO/Chief Executive in role title (`findCeo`, also used by voice now). Due when the sim hour changed AND ≥ `CEO_REVIEW_MIN_INTERVAL_MIN` (15) real minutes passed (weekday-9am always allowed).
+- `runReview`: snapshot (lead gen, leads by status, outreach sent/positive this week, client projects + pipeline, balance/paid, survival, ventures, unread Chairman directives) → ModelGateway → `normalizeReview` (whitelisted types, ≤3) → claim `CeoReview` row → `CeoDecisionsService.apply` → mark directives read (`payload.ceoReadAt`) → weekday 9am sim: `ceo.report` WS + `sentToChairman`.
+- Directive source: Phase 42 voice COMMAND_CEO creates APPROVED `CHAIRMAN_VOICE` ManagementDecisions; VoiceCommands are already EXECUTED synchronously, so "unread" is tracked on the decision.
+- Decisions: REALLOCATE_AGENT (idle agent, prefer paused-venture staff → Task "Support client project: X" on the top-value open ClientProject; skips if already staffed), CHANGE_LEAD_CATEGORY (sanitized add/remove, ≤10, never empty), ADJUST_OUTREACH_SCRIPT (needs ≥5 emails in 14d; LLM rewrite validated: known placeholders only, must keep {{businessName}}; new version active, old inactive), PAUSE_VENTURE (ACTIVE venture >7 days old with zero team task activity in 7 days — deliberately stricter than "lowest activity"). HIRE_AGENT/ESCALATE_TO_CHAIRMAN → PROPOSED ManagementDecision. New kill switch `CEO_AUTONOMY` (or GLOBAL_PRODUCTION) → auto decisions recorded as BLOCKED. Outcome per decision stored in `decisionsProposed`.
+- Endpoints: `GET /ceo/reviews`, `POST /ceo/reviews/run` (CHAIRMAN).
+- tsc clean; 37 suites / 109 tests; boot DI check OK.
+
+### Step 43-2
+- `ceo/pipeline-management.service.ts` (`PipelineManagementService.manage`), run inside every CEO review (only when CEO_AUTONOMY allows); each action logged in `CeoReview.decisionsProposed` as `type: PIPELINE_ACTION` with outcome + detail.
+  - <10 NEW leads → `LeadGenService.runForCompany(companyId, 'CEO')` (at most once/hour; 6-hourly loop search unchanged).
+  - First-touch EMAIL campaigns sent >5 days ago, no positive outcome, lead still CONTACTED → one follow-up via new `EmailOutreachService.sendFollowUp` (idempotency `followup:<campaignId>`; follow-ups are never followed up). Complements the sales worker, which at 3 days closes as NO_RESPONSE and schedules a phone call. One LLM-revised template per review (validated by `validScript`, fallback `DEFAULT_FOLLOW_UP`).
+  - ClientProject SAMPLE_SENT >7 days (by `updatedAt`) → one email offering a free revision or 10% off; claimed via `ceoFollowUpAt`; discount recorded in `ceoNotes` as pending Chairman approval — invoice untouched.
+  - PAID/CLOSED → one referral-request email (`referralRequestedAt`).
+  - Max 5 emails of each kind per review; OUTBOUND_EMAIL / GLOBAL_PRODUCTION / CEO_AUTONOMY kill switches → no emails (logged BLOCKED).
+- Migration `20260926010000_phase43_step2_pipeline` (ClientProject `ceoFollowUpAt`, `referralRequestedAt`, `ceoNotes`).
+- tsc clean; 38 suites / 115 tests; boot DI OK.
+
+### Step 43-3
+- Model `WeeklyReport` (`@@unique([companyId, weekStartDate])`, + `ceoEmployeeId`). Migration `20260926020000_phase43_step3_weekly_report`.
+- `ceo/weekly-report.service.ts`: `generateAndSend(companyId, ceoId, simNow)` — idempotent per week (week = previous sim Monday 00:00 → this Monday 00:00; activity measured over last 7 real days because records carry real timestamps). Aggregates LeadGenRun, campaigns (+positive), CLIENT_PAYMENT RealMoneyTransactions (actual revenue), deals paid, top QUALIFIED/CONVERTED category, the week's CeoReviews (executed actions, risks) → ModelGateway 3-paragraph commentary + biggest challenge (template fallback) → store → `ceo.weekly_report` WS. Triggered from `runReview` on Monday 09:xx sim time.
+- Endpoints: `GET /ceo/weekly-reports` (last 4), `POST /ceo/weekly-reports/run` (CHAIRMAN, last week's report now).
+- Web: `/management` gets a **Reports** tab (`components/WeeklyReports.tsx`, expandable `<details>`, newest open, "Generate last week's report"); `?tab=reports` deep link. New `components/RealtimeToasts.tsx` (socket.io-client, JWT auth) mounted in layout: toasts for ceo.weekly_report, ceo.report, payment.received, lead.interested, company.shutdown/recovered and re-dispatches each as a `aevora:<event>` window event (reuse for 43-5/43-6).
+- **Bug fix:** `/management`, `/model-platform`, `/product-factory` called relative `/api/...` (no Next rewrite exists → 404) and read `localStorage.token` → never loaded. Now use exported `API_BASE` + new `authHeaders()` from `lib/api.ts`.
+- Mobile: `ceo.weekly_report` notification carries the payload; tapping it opens `WeeklyReportScreen` (full-screen modal); home screen shows a "Latest CEO weekly report" card (from `GET /ceo/weekly-reports`).
+- API tsc clean; 39 suites / 118 tests; boot DI OK. Web tsc + next build OK. Mobile `expo export` bundles.
+
+### Step 43-4
+- `ceo/self-improvement.service.ts` (`SelfImprovementService.run`), called at the end of every CEO review; actions logged in `CeoReview.decisionsProposed`.
+- ConversionTracker: per `SalesLead.industry` (lead-gen leads with ≥1 campaign) → contacted, responses (INTERESTED/BOOKED), conversions (QUALIFIED/CONVERTED), avg paid revenue. Derived from DB each review (not in memory) so it's always current; conversion = qualified-or-converted ÷ contacted (paid-only would drop everything early on). Rules (`planCategoryChanges`, pure): >5 contacted & <10% → CHANGE_LEAD_CATEGORY via `CeoDecisionsService.apply` (remove + adjacent category from a static neighbour map, never a previously dropped one); >30% → weight 2.
+- `LeadGenConfig.weights` (category → searches/cycle) and `.dropped` (never auto re-added). `LeadGenService` runs weight-2 categories twice with a query variant ("best …") since repeating the identical query only returns already-known places.
+- OutreachScriptOptimizer: per active EMAIL script, when campaigns ≥ `evaluatedAtCount + 10`: record `responseRatePct`; <15% → LLM rewrites subject + opening paragraph only (`replaceOpening`, then `validScript`), new version `parentId` = old, old deactivated; A/B comparison (parent % vs this %) in the log. First run materializes the built-in default script so its campaigns get a `scriptId`.
+- Respects `CEO_AUTONOMY` (BLOCKED entries). Migration `20260926030000_phase43_step4_self_improvement`.
+- tsc clean; 40 suites / 123 tests; boot DI OK.
+
+### Step 43-5
+- `GET /ceo/feed` → last 20 items from `ceo/ceo-feed.ts` `buildFeed` (pure): each CeoReview becomes a REVIEW summary item plus one item per logged action; WeeklyReports become WEEKLY_REPORT items; newest first. SKIPPED no-ops are dropped except script A/B checks. Each item {id, at, kind, outcome, title (1 sentence), detail, reason}.
+- Actions now carry `kind` (`ActionKind`: DECISION, ESCALATION, LEAD_GEN, FOLLOW_UP, SCRIPT, CATEGORY, PIPELINE) set where they are created (pipeline + self-improvement); LLM decisions map by type.
+- `runReview` emits low-priority `ceo.activity` WS {reviewId, count, latest}.
+- Web: `components/CeoActivityCard.tsx` on the overview page (last 5, lucide icon + colour per kind, relative time; click → slide-out panel with full detail, Esc/overlay closes). `RealtimeToasts` handles `ceo.activity` silently (window event only, no toast) so the card refreshes live.
+- Mobile: "🧠 CEO Updates" section above "Calls to make" (top 4 from `/ceo/feed`, tap → detail modal); `ceo.activity` bumps an unseen counter + app badge via `setBadgeCountAsync` (no banner); tapping clears it.
+- API tsc; 41 suites / 125 tests; boot OK (route mapped). Web next build OK. Mobile bundles.
+
+### Step 43-6
+- Model `CeoQuestion` (+ enums `CeoQuestionUrgency` LOW/MEDIUM/HIGH, `CeoQuestionStatus` OPEN/ANSWERED/USED/EXPIRED). Migration `20260926040000_phase43_step6_ceo_dialogue`.
+- `ceo/ceo-dialogue.service.ts`: `ask` (dedupes identical open questions, max 3 open, pushes `ceo.question` WS), `answer` (OPEN→ANSWERED atomically, once), `pendingAnswers` (expires OPEN > 7 days), `markUsed`.
+- ESCALATE_TO_CHAIRMAN now creates a CeoQuestion (question = `parameters.question` or reason, urgency = `parameters.urgency`); HIRE_AGENT stays a ManagementDecision. Review prompt tells the CEO how/when to ask.
+- Review `snapshot` includes `chairmanAnswers` (ANSWERED); after the review they are marked USED.
+- Chairman → CEO: `POST /ceo/ask {question}` → `CeoReviewService.answerChairman`: immediate ModelGateway answer grounded in the live snapshot + last review (≤1000 chars in).
+- Endpoints: `GET /ceo/questions?status=`, `POST /ceo/questions/:id/answer` (CHAIRMAN), `POST /ceo/ask` (CHAIRMAN).
+- Web: `components/CeoQuestionDialog.tsx` (global, in layout): loads OPEN questions on start + live `ceo.question` (silent in RealtimeToasts) → modal with question, urgency, context, answer box, "Tell CEO" / "Later" (snoozes until reload), "N more waiting". `components/AskCeoCard.tsx` on the overview next to CEO Activity (answers shown inline, last 5).
+- Mobile: `ceo.question` → notification (title marks urgent) → `CeoQuestionScreen` answer modal (also opens immediately if the app is in the foreground); "❓ Your CEO is asking (n)" card at the top of home.
+- API tsc; 42 suites / 129 tests; boot OK (routes mapped). Web next build OK. Mobile bundles.
+
 ## What to do next session
-Phase 42 is code-complete. First live run:
-1. `cd packages/database && npx prisma migrate deploy` (steps 2–7 migrations).
-2. Ensure the Chairman has a password hash (login is now enforced) and a company.
-3. Create an ACTIVE employee whose role title contains "sales" (sales loop needs one) and one with "CEO" (voice directives).
-4. `POST /survival/deposit` so the company isn't SHUTDOWN, start the simulation, watch logs for `BusinessLoopService`.
-5. Keep `OUTREACH_ENVIRONMENT=SANDBOX` and `LEAD_GEN_PROVIDER_ENABLED=false` until a mock run looks right; then enable SMTP / Places / Razorpay one at a time.
+Phase 43 is code-complete. Live run: `cd packages/database && npx prisma migrate deploy` (Phase 42 steps 2–7 + Phase 43 steps 1–4, 6; 43-5 had no migration), ensure a CEO + a sales employee exist, deposit, start the simulation, watch `CeoReviewService` logs; try `POST /ceo/reviews/run` and `POST /ceo/ask`. Keep `OUTREACH_ENVIRONMENT=SANDBOX` until reviews look sane.
 
 ## Known issues
 - Web/desktop/mobile must now log in (`POST /auth/login`) — local single-user bypass is gone. Chairman needs `credentialHash` set in DB.
 - Migration must be applied: `cd packages/database && npx prisma migrate deploy`.
 - Email replies are not read automatically; the Chairman logs outcomes via `POST /outreach/campaigns/:id/outcome` (inbox polling = later).
 - Sales worker does nothing until a company has an ACTIVE employee whose role title contains "sales".
-- Apply migrations: steps 2–7.
+- Apply migrations: steps 2–7 and phase43 steps 1–4 and 6.
+- Android "high priority" for ceo.question relies on the default notification channel; a dedicated high-importance channel (`setNotificationChannelAsync`) would make it heads-up on all devices.
+- CEO needs an ACTIVE employee with CEO in the role title, and the simulation RUNNING (reviews ride the business loop).
 - Voice needs Chrome/Edge (Web Speech API) and a logged-in Chairman JWT.
 - A company with no RealMoneyAccount / zero balance goes to SHUTDOWN on the first survival check — deposit first (`POST /survival/deposit`).
 - Client-project invoices are created with environment SANDBOX (InvoiceService requires an ApprovalRequest for PRODUCTION). Real money is still credited on payment.
@@ -114,4 +175,4 @@ Phase 42 is code-complete. First live run:
 - WebSocket: connection is JWT-verified (Step 8), but `device:identify` does not check that the deviceId belongs to the user (device rooms are only used by broadcastToDevice).
 
 ## Environment variables to add to .env.example
-LEAD_GEN_PROVIDER_ENABLED, GOOGLE_PLACES_API_KEY, LEAD_GEN_CATEGORIES, LEAD_GEN_LOCATION, LEAD_GEN_RADIUS_M, LEAD_GEN_INTERVAL_HOURS, SMTP_*, OUTREACH_FROM_NAME, OUTREACH_ENVIRONMENT, OUTREACH_FOLLOWUP_DAYS, SALES_BATCH_SIZE, CHAIRMAN_NAME, COMPANY_NAME, PUBLIC_API_URL, PAYMENT_REMINDER_DAYS, RAZORPAY_KEY_ID/SECRET/WEBHOOK_SECRET, BANK_TRANSFER_INSTRUCTIONS, MIN_BALANCE_PAISE, WARNING_BALANCE_PAISE, VENTURE_MAX_TEAM, BUSINESS_LOOP_INTERVAL_MS (all added to .env.example).
+LEAD_GEN_PROVIDER_ENABLED, GOOGLE_PLACES_API_KEY, LEAD_GEN_CATEGORIES, LEAD_GEN_LOCATION, LEAD_GEN_RADIUS_M, LEAD_GEN_INTERVAL_HOURS, SMTP_*, OUTREACH_FROM_NAME, OUTREACH_ENVIRONMENT, OUTREACH_FOLLOWUP_DAYS, SALES_BATCH_SIZE, CHAIRMAN_NAME, COMPANY_NAME, PUBLIC_API_URL, PAYMENT_REMINDER_DAYS, RAZORPAY_KEY_ID/SECRET/WEBHOOK_SECRET, BANK_TRANSFER_INSTRUCTIONS, MIN_BALANCE_PAISE, WARNING_BALANCE_PAISE, VENTURE_MAX_TEAM, BUSINESS_LOOP_INTERVAL_MS, CEO_REVIEW_MIN_INTERVAL_MIN (all added to .env.example).

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_BASE, authHeaders, getToken } from '../lib/api';
+import WeeklyReports from '../components/WeeklyReports';
 
 type HealthStatus = 'HEALTHY' | 'WATCH' | 'AT_RISK' | 'CRITICAL';
 type ArtifactType = 'FACT' | 'ANALYSIS' | 'RECOMMENDATION' | 'DECISION' | 'EXECUTION';
@@ -115,7 +117,11 @@ function ArtifactBadge({ type }: { type: ArtifactType | string }) {
 }
 
 export default function ManagementPage() {
-  const [tab, setTab] = useState<'dashboard' | 'decisions' | 'risks' | 'escalations' | 'objectives'>('dashboard');
+  type Tab = 'dashboard' | 'reports' | 'decisions' | 'risks' | 'escalations' | 'objectives';
+  const [tab, setTab] = useState<Tab>('dashboard');
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('tab') === 'reports') setTab('reports');
+  }, []);
   const [health, setHealth] = useState<HealthSnapshot | null>(null);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
@@ -125,12 +131,12 @@ export default function ManagementPage() {
   const [cycleRunning, setCycleRunning] = useState(false);
   const [cycleMessage, setCycleMessage] = useState('');
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = typeof window !== 'undefined' ? getToken() : null;
 
   const apiFetch = async (path: string, opts?: RequestInit) => {
-    const res = await fetch(`/api${path}`, {
+    const res = await fetch(`${API_BASE}${path}`, {
       ...opts,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts?.headers ?? {}) },
+      headers: { ...authHeaders(), ...(opts?.headers ?? {}) },
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
@@ -202,7 +208,7 @@ export default function ManagementPage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #374151', paddingBottom: 0 }}>
-        {(['dashboard', 'decisions', 'risks', 'escalations', 'objectives'] as const).map(t => (
+        {(['dashboard', 'reports', 'decisions', 'risks', 'escalations', 'objectives'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -410,6 +416,9 @@ export default function ManagementPage() {
           </div>
         </div>
       )}
+
+      {/* CEO Weekly Reports Tab */}
+      {tab === 'reports' && <WeeklyReports />}
 
       {/* Objectives Tab */}
       {!loading && tab === 'objectives' && (

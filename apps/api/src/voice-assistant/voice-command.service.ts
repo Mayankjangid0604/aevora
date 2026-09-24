@@ -3,6 +3,7 @@ import { ModelGateway } from '@aevora/model-gateway';
 import { PrismaService } from '../prisma/prisma.service';
 import { SimulationService } from '../simulation/simulation.service';
 import { NewVentureService } from '../ventures/new-venture.service';
+import { findCeo } from '../ceo/ceo-review.service';
 
 export const VOICE_INTENTS = ['NEW_STARTUP_IDEA', 'STATUS_REPORT', 'COMMAND_CEO', 'ADD_EMPLOYEE', 'CHECK_REVENUE', 'PAUSE_SIMULATION', 'CUSTOM'] as const;
 export type VoiceIntentName = (typeof VOICE_INTENTS)[number];
@@ -121,13 +122,7 @@ export class VoiceCommandService {
 
   /** Chairman directive → ManagementDecision (pre-approved) targeted at the CEO agent. */
   private async directiveToCeo(companyId: string, i: VoiceIntent, transcript: string, commandId: string) {
-    const ceo = await this.prisma.employee.findFirst({
-      where: {
-        companyId,
-        status: 'ACTIVE',
-        role: { OR: [{ title: { contains: 'CEO', mode: 'insensitive' } }, { title: { contains: 'Chief Executive', mode: 'insensitive' } }] },
-      },
-    });
+    const ceo = await findCeo(this.prisma, companyId);
     if (!ceo) throw new Error('no active CEO employee to receive the command');
     const chairman = await this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { chairmanId: true } });
     await this.prisma.managementDecision.create({

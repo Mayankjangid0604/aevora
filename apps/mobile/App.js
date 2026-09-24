@@ -154,8 +154,8 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
 });
 
-function notify(title, body) {
-  Notifications.scheduleNotificationAsync({ content: { title, body }, trigger: null }).catch(() => {});
+function notify(title, body, data = {}) {
+  Notifications.scheduleNotificationAsync({ content: { title, body, data }, trigger: null }).catch(() => {});
 }
 
 const REALTIME_EVENTS = {
@@ -164,6 +164,8 @@ const REALTIME_EVENTS = {
   'payment.received': (d) => ['💰 Payment received', `₹${((d.amountPaise || 0) / 100).toLocaleString('en-IN')}`],
   'company.shutdown': () => ['⛔ Company shut down', 'Balance below minimum — all agents stopped. Deposit to resume.'],
   'company.recovered': () => ['✅ Company recovered', 'Agents resumed.'],
+  'ceo.question': (d) => [`❓ Your CEO is asking${d.urgency === 'HIGH' ? ' (urgent)' : ''}`, d.question || 'Tap to answer'],
+  'ceo.weekly_report': (d) => ['📊 CEO weekly report', d.biggestChallenge || 'Your weekly report is ready — tap to read.'],
 };
 
 function useRealtime(token, deviceId, onEvent) {
@@ -173,10 +175,12 @@ function useRealtime(token, deviceId, onEvent) {
     // The server verifies this JWT on connect and derives the user from it.
     const socket = io(API_BASE, { transports: ['websocket'], auth: { token } });
     socket.on('connect', () => socket.emit('device:identify', { deviceId }));
+    // Low priority: no banner, just let the screen update and bump the badge.
+    socket.on('ceo.activity', (data) => onEvent('ceo.activity', data || {}));
     Object.keys(REALTIME_EVENTS).forEach((ev) =>
       socket.on(ev, (data) => {
         const [title, body] = REALTIME_EVENTS[ev](data || {});
-        notify(title, body);
+        notify(title, body, { event: ev, payload: data || {} });
         onEvent(ev, data || {});
       }),
     );
@@ -293,6 +297,90 @@ function CallScreen({ token, call, onClose, onDone }) {
   );
 }
 
+// ── Answer a CEO question ─────────────────────────────────────────────────────
+function CeoQuestionScreen({ token, question, onClose, onAnswered }) {
+  const [answer, setAnswer] = useState('');
+  const [busy, setBusy] = useState(false);
+  const send = async () => {
+    if (!answer.trim()) return;
+    setBusy(true);
+    try {
+      await apiPost(`/ceo/questions/${question.id}/answer`, { answer }, token);
+      onAnswered(question.id);
+    } catch (e) {
+      Alert.alert('Could not send', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const reason = question.context && question.context.reason;
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <ScrollView style={styles.dashContainer} contentContainerStyle={{ padding: 16, paddingTop: 48 }} keyboardShouldPersistTaps="handled">
+        <Text style={styles.headerTitle}>YOUR CEO IS ASKING</Text>
+        <Text style={[styles.callName, { fontSize: 20 }]}>{question.question}</Text>
+        <Text style={[styles.cardMeta, { color: question.urgency === 'HIGH' ? '#f87171' : '#94a3b8' }]}>{(question.urgency || 'MEDIUM').toLowerCase()} urgency</Text>
+        {reason ? (
+          <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.cardTitle}>Why</Text>
+            <Text style={styles.cardMeta}>{reason}</Text>
+          </View>
+        ) : null}
+        <TextInput
+          style={[styles.input, { minHeight: 120, textAlignVertical: 'top', marginTop: 12 }]}
+          multiline
+          maxLength={2000}
+          value={answer}
+          onChangeText={setAnswer}
+          placeholder="Type your answer…"
+          placeholderTextColor="#666"
+        />
+        <TouchableOpacity style={styles.loginBtn} onPress={send} disabled={busy || !answer.trim()}>
+          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginBtnText}>Tell CEO</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutBtn} onPress={onClose}>
+          <Text style={styles.logoutText}>Later</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </Modal>
+  );
+}
+
+// ── Weekly Report (full screen) ───────────────────────────────────────────────
+function WeeklyReportScreen({ report, onClose }) {
+  const rupees = (p) => `₹${Math.round((p || 0) / 100).toLocaleString('en-IN')}`;
+  const week = report.weekStartDate ? new Date(report.weekStartDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <ScrollView style={styles.dashContainer} contentContainerStyle={{ padding: 16, paddingTop: 48 }}>
+        <Text style={styles.headerTitle}>WEEKLY REPORT</Text>
+        <Text style={styles.callName}>{week ? `Week of ${week}` : 'This week'}</Text>
+        <View style={[styles.card, { flexDirection: 'row', flexWrap: 'wrap', gap: 16 }]}>
+          {report.leadsFoundCount != null && <Text style={styles.cardMeta}>Leads found: {report.leadsFoundCount}</Text>}
+          {report.leadsContactedCount != null && <Text style={styles.cardMeta}>Contacted: {report.leadsContactedCount}</Text>}
+          <Text style={styles.cardMeta}>Deals won: {report.dealsWonCount ?? 0}</Text>
+          <Text style={[styles.cardMeta, { color: '#34d399' }]}>Revenue: {rupees(report.revenueEarnedPaise)}</Text>
+        </View>
+        {report.biggestChallenge ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Biggest challenge</Text>
+            <Text style={styles.cardMeta}>{report.biggestChallenge}</Text>
+          </View>
+        ) : null}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>From your CEO</Text>
+          {String(report.ceoCommentary || '').split(/\n\s*\n/).map((p, i) => (
+            <Text key={i} style={[styles.cardMeta, { lineHeight: 20, marginBottom: 8 }]}>{p}</Text>
+          ))}
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={onClose}>
+          <Text style={styles.logoutText}>Close</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </Modal>
+  );
+}
+
 // ── Lead Profile ──────────────────────────────────────────────────────────────
 function LeadProfile({ lead, history, onClose, onCall }) {
   return (
@@ -341,14 +429,40 @@ function DashboardScreen({ token, deviceId, onLogout }) {
   const [activeCall, setActiveCall] = useState(null);
   const [profileLeadId, setProfileLeadId] = useState(null);
   const [shutdown, setShutdown] = useState(false);
+  const [weeklyReport, setWeeklyReport] = useState(null);
+  const [latestReport, setLatestReport] = useState(null);
+  const [ceoFeed, setCeoFeed] = useState([]);
+  const [ceoUnseen, setCeoUnseen] = useState(0);
+  const [ceoItem, setCeoItem] = useState(null);
+  const [openQuestions, setOpenQuestions] = useState([]);
+  const [question, setQuestion] = useState(null);
+
+  const markCeoSeen = () => {
+    setCeoUnseen(0);
+    Notifications.setBadgeCountAsync(0).catch(() => {});
+  };
+
+  // Tapping a weekly-report notification opens the full report.
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
+      const d = resp.notification.request.content.data || {};
+      if (d.event === 'ceo.weekly_report') setWeeklyReport(d.payload);
+      if (d.event === 'ceo.question') setQuestion(d.payload);
+    });
+    return () => sub.remove();
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
-      const [d, c, l] = await Promise.all([
+      const [d, c, l, reports] = await Promise.all([
         apiGet('/devices', token),
         apiGet('/outreach/campaigns', token),
         apiGet('/lead-gen/leads', token),
+        apiGet('/ceo/weekly-reports', token).catch(() => []),
       ]);
+      apiGet('/ceo/feed', token).then(setCeoFeed).catch(() => {});
+      apiGet('/ceo/questions?status=OPEN', token).then(setOpenQuestions).catch(() => {});
+      setLatestReport(reports[0] || null);
       setDevices(d);
       setCampaigns(c);
       setLeads(l);
@@ -376,6 +490,18 @@ function DashboardScreen({ token, deviceId, onLogout }) {
     if (ev === 'call.scheduled') setActiveCall(data);
     if (ev === 'company.shutdown') setShutdown(true);
     if (ev === 'company.recovered') setShutdown(false);
+    if (ev === 'ceo.weekly_report') setLatestReport(data);
+    if (ev === 'ceo.question') {
+      setOpenQuestions((qs) => (qs.some((q) => q.id === data.id) ? qs : [data, ...qs]));
+      setQuestion(data);
+    }
+    if (ev === 'ceo.activity') {
+      const n = data.count || 1;
+      setCeoUnseen((u) => {
+        Notifications.setBadgeCountAsync(u + n).catch(() => {});
+        return u + n;
+      });
+    }
     refresh();
   });
 
@@ -411,6 +537,47 @@ function DashboardScreen({ token, deviceId, onLogout }) {
             <Text style={[styles.cardTitle, { color: '#ef4444' }]}>⛔ Company shut down</Text>
             <Text style={styles.cardMeta}>Real-money balance is below the minimum. Log a deposit on the laptop to resume.</Text>
           </View>
+        )}
+
+        {openQuestions.length > 0 && (
+          <View style={[styles.card, { borderColor: '#a78bfa' }]}>
+            <Text style={styles.cardTitle}>❓ Your CEO is asking ({openQuestions.length})</Text>
+            {openQuestions.map((q) => (
+              <TouchableOpacity key={q.id} style={styles.leadRow} onPress={() => setQuestion(q)}>
+                <Text style={styles.deviceName} numberOfLines={2}>{q.question}</Text>
+                <Text style={[styles.cardMeta, { color: '#a78bfa' }]}>Tap to answer →</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={styles.cardTitle}>🧠 CEO Updates</Text>
+            {ceoUnseen > 0 && (
+              <TouchableOpacity onPress={markCeoSeen} style={styles.badgePill}>
+                <Text style={styles.badgePillText}>{ceoUnseen} new</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {ceoFeed.length === 0 ? (
+            <Text style={styles.cardMeta}>Nothing yet — the CEO reviews the business every simulation hour.</Text>
+          ) : (
+            ceoFeed.slice(0, 4).map((it) => (
+              <TouchableOpacity key={it.id} style={styles.leadRow} onPress={() => { setCeoItem(it); markCeoSeen(); }}>
+                <Text style={styles.deviceName} numberOfLines={2}>{it.title}</Text>
+                <Text style={styles.cardMeta}>{it.kind.replace('_', ' ').toLowerCase()} · {new Date(it.at).toLocaleString()}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+
+        {latestReport && (
+          <TouchableOpacity style={[styles.card, { borderColor: '#4f8cff' }]} onPress={() => setWeeklyReport(latestReport)}>
+            <Text style={styles.cardTitle}>📊 Latest CEO weekly report</Text>
+            <Text style={styles.cardMeta} numberOfLines={2}>{latestReport.biggestChallenge}</Text>
+            <Text style={[styles.cardMeta, { color: '#4f8cff' }]}>Read the full report →</Text>
+          </TouchableOpacity>
         )}
 
         <View style={styles.card}>
@@ -476,6 +643,30 @@ function DashboardScreen({ token, deviceId, onLogout }) {
           onCall={profileCall ? () => setActiveCall(callFromCampaign(profileCall)) : null}
         />
       )}
+      {question && (
+        <CeoQuestionScreen
+          token={token}
+          question={question}
+          onClose={() => setQuestion(null)}
+          onAnswered={(id) => { setOpenQuestions((qs) => qs.filter((q) => q.id !== id)); setQuestion(null); Alert.alert('Sent', 'Your CEO will use this in its next review.'); }}
+        />
+      )}
+      {ceoItem && (
+        <Modal visible animationType="slide" onRequestClose={() => setCeoItem(null)}>
+          <ScrollView style={styles.dashContainer} contentContainerStyle={{ padding: 16, paddingTop: 48 }}>
+            <Text style={styles.headerTitle}>{ceoItem.kind.replace('_', ' ')}</Text>
+            <Text style={[styles.callName, { fontSize: 20 }]}>{ceoItem.title}</Text>
+            <Text style={styles.cardMeta}>{new Date(ceoItem.at).toLocaleString()}{ceoItem.outcome ? ` · ${ceoItem.outcome.toLowerCase()}` : ''}</Text>
+            <View style={[styles.card, { marginTop: 12 }]}>
+              <Text style={[styles.cardMeta, { lineHeight: 20 }]}>{ceoItem.detail}</Text>
+            </View>
+            <TouchableOpacity style={styles.logoutBtn} onPress={() => setCeoItem(null)}>
+              <Text style={styles.logoutText}>Close</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </Modal>
+      )}
+      {weeklyReport && <WeeklyReportScreen report={weeklyReport} onClose={() => setWeeklyReport(null)} />}
       {activeCall && (
         <CallScreen
           token={token}
@@ -557,5 +748,7 @@ const styles = StyleSheet.create({
   callPhone: { color: '#3b82f6', fontSize: 20, fontWeight: '700', marginVertical: 12 },
   secondaryBtn: { borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 10, borderWidth: 1, borderColor: '#374151' },
   secondaryText: { color: '#e2e8f0', fontWeight: '600' },
+  badgePill: { backgroundColor: '#4f8cff', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  badgePillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   outcomeBtn: { borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 8 },
 });

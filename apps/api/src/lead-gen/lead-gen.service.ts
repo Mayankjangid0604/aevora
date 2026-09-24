@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RealtimeGateway } from '../devices/realtime.gateway';
 import { LeadSearchService } from './lead-search.service';
 
+const SEARCH_VARIANTS = ['', 'best', 'popular'];
+
 /** LeadGenOrchestrator + LeadQueue: runs searches (scheduled by BusinessLoopService), stores leads, serves the NEW-lead queue. */
 @Injectable()
 export class LeadGenService {
@@ -32,7 +34,7 @@ export class LeadGenService {
     const company = await this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { chairmanId: true } });
     const run = await this.prisma.leadGenRun.create({ data: { companyId, triggeredBy } });
     try {
-      const categories = (process.env.LEAD_GEN_CATEGORIES ?? 'restaurant').split(',').map((s) => s.trim()).filter(Boolean);
+      const categories = await this.categoriesFor(companyId);
       const location = process.env.LEAD_GEN_LOCATION ?? 'Sikar, Rajasthan, India';
       const radius = Number(process.env.LEAD_GEN_RADIUS_M ?? 50000);
 
@@ -44,8 +46,12 @@ export class LeadGenService {
 
       let totalFound = 0;
       let totalNew = 0;
-      for (const category of categories) {
-        const found = await this.search.search({ category, location, radius, maxResults: 20 }, known);
+      const weights = await this.weightsFor(companyId);
+      const searches = categories.flatMap((category) =>
+        SEARCH_VARIANTS.slice(0, Math.min(SEARCH_VARIANTS.length, Math.max(1, weights[category] ?? 1))).map((variant) => ({ category, variant })),
+      );
+      for (const { category, variant } of searches) {
+        const found = await this.search.search({ category, location, radius, maxResults: 20, variant }, known);
         totalFound += found.length;
         for (const f of found) {
           known.add(f.googlePlaceId);
@@ -95,6 +101,19 @@ export class LeadGenService {
       });
       throw e;
     }
+  }
+
+  /** Searches per cycle per category (CEO raises high converters to 2). */
+  async weightsFor(companyId: string): Promise<Record<string, number>> {
+    const config = await this.prisma.leadGenConfig.findUnique({ where: { companyId } });
+    return (config?.weights as Record<string, number>) ?? {};
+  }
+
+  /** CEO-managed LeadGenConfig wins; otherwise the LEAD_GEN_CATEGORIES env var. */
+  async categoriesFor(companyId: string) {
+    const config = await this.prisma.leadGenConfig.findUnique({ where: { companyId } });
+    if (config?.categories.length) return config.categories;
+    return (process.env.LEAD_GEN_CATEGORIES ?? 'restaurant').split(',').map((s) => s.trim()).filter(Boolean);
   }
 
   /** Queue: NEW lead-gen leads, best first. */
