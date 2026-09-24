@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { AgentContextBuilder } from './agent-context.service';
 import { AgentPolicyService } from './agent-policy.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { LocalProvider } from '@aevora/model-gateway';
+import { ModelGateway } from '@aevora/model-gateway';
 import { AgentStatus, ExecutionStatus } from '@prisma/client';
 import { TaskService } from '../task/task.service';
 import { MemoryService } from './memory.service';
@@ -77,7 +77,7 @@ export class WorkCycleService {
       });
 
       // Stub gateway
-      const gateway = new LocalProvider(); // Using local stub for now
+      const gateway = new ModelGateway(); // Using model gateway
       const response = await gateway.generate({
         systemMessage: systemInstructions,
         prompt: JSON.stringify(contextData),

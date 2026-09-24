@@ -18,6 +18,9 @@ const NAV_ITEMS = [
   { href: '/research',    icon: '🔬', label: 'AI Lab' },
   { href: '/customer-operations', icon: '🤝', label: 'Customer Ops' },
   { href: '/sales', icon: '📈', label: 'Sales & BD' },
+  { href: '/delivery', icon: '🛠️', label: 'Delivery' },
+  { href: '/survival', icon: '🫀', label: 'Survival' },
+  { href: '/ventures', icon: '🚀', label: 'Ventures' },
   { href: '/marketing', icon: '📣', label: 'Marketing' },
 ];
 

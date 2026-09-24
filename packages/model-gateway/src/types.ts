@@ -10,6 +10,7 @@ export interface ModelRequest {
   temperature?: number;
   maxTokens?: number;
   requireStructuredOutput?: boolean;
+  complexity?: 'BASIC' | 'COMPLEX';
 }
 
 export interface ModelResponse {

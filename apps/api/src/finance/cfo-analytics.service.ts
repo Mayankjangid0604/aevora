@@ -6,6 +6,8 @@ export class CfoAnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async verifyActor(actorId: string, companyId: string) {
+    const chairman = await this.prisma.chairman.findUnique({ where: { id: actorId } });
+    if (chairman) return null; // chairman always allowed
     const actor = await this.prisma.employee.findUnique({ where: { id: actorId } });
     if (!actor || actor.companyId !== companyId) throw new ForbiddenException('Actor does not belong to company');
     if (actor.status !== 'ACTIVE') throw new ForbiddenException('Actor is not active');

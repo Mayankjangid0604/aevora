@@ -141,11 +141,24 @@ export class AgentContextBuilder {
         select: { id: true, name: true, _count: { select: { employees: true } } }
       });
 
+      const chairmanDirectives = await this.prisma.managementDecision.findMany({
+        where: {
+          companyId: emp.companyId,
+          targetEmployeeId: emp.id,
+          status: 'APPROVED',
+          payload: { path: ['source'], equals: 'CHAIRMAN_VOICE' },
+          createdAt: { gt: new Date(Date.now() - 7 * 86_400_000) },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
       contextData.companyOperations = {
         metrics,
         activeAlerts: activeAlerts.map(a => ({ id: a.id, severity: a.severity, category: a.category, title: a.title })),
         pendingDecisions: pendingDecisions.map(d => ({ id: d.id, type: d.type, title: d.title })),
-        departments: departmentSummaries.map(d => ({ id: d.id, name: d.name, employeeCount: d._count.employees }))
+        departments: departmentSummaries.map(d => ({ id: d.id, name: d.name, employeeCount: d._count.employees })),
+        chairmanDirectives: chairmanDirectives.map(d => ({ id: d.id, title: d.title, instruction: d.description, issuedAt: d.createdAt }))
       };
     }
 

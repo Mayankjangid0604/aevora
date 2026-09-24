@@ -1,0 +1,78 @@
+
+// ─── Customer Acquisition Loop (Phase 41) ──────────────────────────────
+
+model ResearchResult {
+  id                  String   @id @default(uuid())
+  companyId           String
+  businessName        String
+  website             String?
+  industry            String?
+  location            String?
+  source              String
+  sourceUrl           String?
+  contactInfo         Json?    // Array of { name, email, role, phone, confidence }
+  qualificationHypothesis String?
+  confidence          Int      @default(0) // 0-100
+  evidence            Json?
+  researchedAt        DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([companyId, businessName])
+}
+
+enum OutreachDraftStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENDING
+  SENT
+  FAILED
+}
+
+model OutreachDraft {
+  id                  String              @id @default(uuid())
+  companyId           String
+  opportunityId       String?
+  salesLeadId         String?
+  recipientEmail      String
+  recipientName       String?
+  subject             String
+  messageBody         String
+  reasonForContact    String?
+  researchEvidence    Json?
+  proposedNextAction  String?
+  riskFlags           Json?
+  status              OutreachDraftStatus @default(DRAFT)
+  approvedBy          String?
+  approvedAt          DateTime?
+  sentAt              DateTime?
+  errorMessage        String?
+  idempotencyKey      String?             @unique
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([companyId, status])
+  @@index([companyId, recipientEmail])
+}
+
+enum OutreachResponseType {
+  DELIVERED
+  BOUNCED
+  REPLIED
+  INTERESTED
+  NOT_INTERESTED
+  UNSUBSCRIBED
+}
+
+model OutreachResponse {
+  id                  String               @id @default(uuid())
+  companyId           String
+  draftId             String
+  responseType        OutreachResponseType
+  responseDetails     Json?
+  recordedAt          DateTime             @default(now())
+  createdAt           DateTime             @default(now())
+
+  @@index([companyId, draftId])
+}

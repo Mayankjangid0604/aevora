@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ExecutionEnvironment, IntegrationStatus } from '@prisma/client';
 import { SandboxEmailProvider } from './providers/sandbox-email.provider';
+import { ProductionEmailProvider } from './providers/production-email.provider';
 import { StructuredLoggerService } from '../logger/structured-logger.service';
 
 export interface EmailPayload {
@@ -21,6 +22,7 @@ export class IntegrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sandboxEmail: SandboxEmailProvider,
+    private readonly productionEmail: ProductionEmailProvider,
     private readonly logger: StructuredLoggerService
   ) {}
 
@@ -65,13 +67,25 @@ export class IntegrationService {
         const result = await this.sandboxEmail.send(payload);
         response = { success: result.success, message: result.message, referenceId: result.referenceId };
       } else {
-        if (!provider) {
+        if (!provider && !process.env.SMTP_HOST) {
           throw new Error('NOT_IMPLEMENTED: No active email provider configured for PRODUCTION');
         }
-        // In reality, this would invoke the real provider like SendGrid
-        // For Phase 22, if we hit production without a real integration, we fail, but if mock is allowed, we mock.
-        // As requested: "Every unsupported capability must be explicitly marked NOT_IMPLEMENTED or LIMITED."
-        throw new Error('NOT_IMPLEMENTED: Real production email sending is not yet supported');
+
+        const isProdEnabled = process.env.ENABLE_REAL_PRODUCTION_SENDING === 'true';
+        
+        if (!isProdEnabled) {
+          const testRecipient = process.env.TEST_EMAIL_RECIPIENT;
+          if (!testRecipient || testRecipient.trim() === '') {
+            throw new Error('TEST_EMAIL_RECIPIENT is missing or empty. The system is in test mode and fails closed to prevent sending real emails.');
+          }
+          if (payload.to !== testRecipient) {
+              this.logger.log(`[TEST MODE] Redirecting email from ${payload.to} to ${testRecipient}`);
+              payload.to = testRecipient;
+          }
+        }
+
+        const result = await this.productionEmail.send(payload);
+        response = { success: result.success, message: result.message, referenceId: result.referenceId };
       }
 
       await this.prisma.integrationAuditLog.update({

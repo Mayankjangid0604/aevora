@@ -21,7 +21,7 @@ import { OutcomeService } from '../intelligence/services/outcome.service';
 
 jest.mock('@aevora/model-gateway', () => {
   return {
-    LocalProvider: jest.fn().mockImplementation(() => {
+    ModelGateway: jest.fn().mockImplementation(() => {
       return {
         generate: jest.fn().mockResolvedValue({
           structuredOutput: {

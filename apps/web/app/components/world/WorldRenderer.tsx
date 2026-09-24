@@ -201,33 +201,29 @@ export default function WorldRenderer({
 
     reqRef.current = requestAnimationFrame(render);
 
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomSensitivity = 0.001;
+      const delta = -e.deltaY * zoomSensitivity;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const oldZoom = cameraRef.current.zoom;
+      const newZoom = Math.max(0.1, Math.min(oldZoom + delta, 5));
+      const worldX = (mx - cameraRef.current.x) / oldZoom;
+      const worldY = (my - cameraRef.current.y) / oldZoom;
+      cameraRef.current.zoom = newZoom;
+      cameraRef.current.x = mx - worldX * newZoom;
+      cameraRef.current.y = my - worldY * newZoom;
+    };
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
     return () => {
       window.removeEventListener('resize', resize);
+      canvas.removeEventListener('wheel', handleWheel);
       if (reqRef.current) cancelAnimationFrame(reqRef.current);
     };
   }, [data, selectedEmpId]);
-
-  // Input Handling
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomSensitivity = 0.001;
-    const delta = -e.deltaY * zoomSensitivity;
-    
-    // Zoom around mouse cursor
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    
-    const oldZoom = cameraRef.current.zoom;
-    let newZoom = Math.max(0.1, Math.min(oldZoom + delta, 5));
-    
-    const worldX = (mx - cameraRef.current.x) / oldZoom;
-    const worldY = (my - cameraRef.current.y) / oldZoom;
-    
-    cameraRef.current.zoom = newZoom;
-    cameraRef.current.x = mx - worldX * newZoom;
-    cameraRef.current.y = my - worldY * newZoom;
-  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
@@ -293,7 +289,6 @@ export default function WorldRenderer({
     >
       <canvas
         ref={canvasRef}
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { PrismaService } from '@aevora/database';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Chairman Acceptance & Emergency Controls (e2e)', () => {
   let app: INestApplication;
@@ -127,7 +127,7 @@ describe('Chairman Acceptance & Emergency Controls (e2e)', () => {
       // Deactivate employee
       await prisma.employee.update({
         where: { id: employeeId },
-        data: { status: 'INACTIVE' } // Example status
+        data: { status: 'SUSPENDED' } // Example status
       });
       
       // Attempt action

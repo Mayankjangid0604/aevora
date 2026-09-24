@@ -30,8 +30,13 @@ export class AuthService {
     }
 
     // Check if it's a chairman
-    const chairman = await this.prisma.chairman.findUnique({
-      where: { id: actorId },
+    const chairman = await this.prisma.chairman.findFirst({
+      where: {
+        OR: [
+          { id: actorId },
+          { email: actorId }
+        ]
+      },
       include: { companies: true },
     });
 
