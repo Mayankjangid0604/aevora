@@ -151,9 +151,23 @@ async function main() {
   const sim = await prisma.simulationState.findFirst({ where: { companyId: company.id } });
   if (!sim) {
     await prisma.simulationState.create({
-      data: { companyId: company.id, status: 'STOPPED', speed: 1 }
+      data: { companyId: company.id, status: 'STOPPED', speedMultiplier: 1.0 }
     });
     console.log('Created SimulationState');
+  }
+
+  // Create SurvivalConfig if it doesn't exist
+  const surv = await prisma.survivalConfig.findFirst({ where: { companyId: company.id } });
+  if (!surv) {
+    await prisma.survivalConfig.create({
+      data: {
+        companyId: company.id,
+        minBalancePaise: parseInt(process.env.MIN_BALANCE_PAISE || '50000'),
+        warningBalancePaise: parseInt(process.env.WARNING_BALANCE_PAISE || '200000'),
+        currentStatus: 'HEALTHY',
+      }
+    });
+    console.log('Created SurvivalConfig');
   }
 
   console.log('\n✅ Done!');
