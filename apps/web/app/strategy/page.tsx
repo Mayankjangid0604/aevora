@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 type ArtifactType = 'FACT' | 'ANALYSIS' | 'ASSUMPTION' | 'FORECAST' | 'RECOMMENDATION' | 'DECISION' | 'EXECUTION';
 type Horizon = 'SHORT_TERM' | 'MEDIUM_TERM' | 'LONG_TERM';
@@ -107,7 +108,7 @@ export default function StrategyPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
 
-  const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+  const API = API_BASE;
 
   async function load() {
     setLoading(true);

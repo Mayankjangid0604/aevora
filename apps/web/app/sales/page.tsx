@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import OutreachPanel from '../components/OutreachPanel';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_BASE } from '../lib/api';
 
 async function apiFetch(path: string) {
   try {

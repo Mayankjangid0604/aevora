@@ -13,7 +13,10 @@ import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'tauri://localhost', 'http://tauri.localhost'],
+    origin: [
+      'http://localhost:3000', 'http://localhost:3001', 'tauri://localhost', 'http://tauri.localhost',
+      ...(process.env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    ],
     credentials: true,
   },
 })

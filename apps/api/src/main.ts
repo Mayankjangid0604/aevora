@@ -24,10 +24,13 @@ async function bootstrap() {
     transform: true,
   }));
 
+  // ALLOWED_ORIGINS (comma-separated, e.g. https://aevora-web-ashy.vercel.app) is honoured in every mode;
+  // local dev origins are added outside production.
+  const extraOrigins = (process.env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.ALLOWED_ORIGINS?.split(',') 
-      : ['http://localhost:3001', 'http://localhost:3000'],
+    origin: process.env.NODE_ENV === 'production'
+      ? extraOrigins
+      : ['http://localhost:3001', 'http://localhost:3000', ...extraOrigins],
     credentials: true,
   });
   

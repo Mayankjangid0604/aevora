@@ -1,4 +1,6 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Must be set in the hosting environment (e.g. Vercel → Settings → Environment Variables) to the public API URL.
+// The fallback matches the API's default local port.
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:13000';
 
 /** For pages that call fetch directly: JSON + the Chairman's bearer token. */
 export function authHeaders(): Record<string, string> {
