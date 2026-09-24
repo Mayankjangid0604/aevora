@@ -1,4 +1,11 @@
 import { Module } from '@nestjs/common';
+import { OutreachModule } from './outreach/outreach.module';
+import { LeadGenModule } from './lead-gen/lead-gen.module';
+import { SalesOutreachModule } from './sales-outreach/sales-outreach.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { SurvivalModule } from './survival/survival.module';
+import { VoiceAssistantModule } from './voice-assistant/voice-assistant.module';
+import { VenturesModule } from './ventures/ventures.module';
 import { HealthController } from './health.controller';
 import { EconomyModule } from './economy/economy.module';
 import { CompanyModule } from './company/company.module';
@@ -51,6 +58,8 @@ import { GlobalOperationsModule } from './global-operations/global-operations.mo
 import { FoundationIntelligenceModule } from './foundation-intelligence/foundation-intelligence.module';
 import { RdFlywheelModule } from './rd-flywheel/rd-flywheel.module';
 import { AutonomousEnterpriseModule } from './autonomous-enterprise/autonomous-enterprise.module';
+import { DevicesModule } from './devices/devices.module';
+import { WorldEngineModule } from './world-engine/world-engine.module';
 
 @Module({
   imports: [
@@ -77,6 +86,7 @@ import { AutonomousEnterpriseModule } from './autonomous-enterprise/autonomous-e
     ProjectExecutionModule,
     CompanyOperationsModule,
     ChairmanModule,
+    DevicesModule,
     CommunicationModule,
     KnowledgeModule,
     IntelligenceModule,
@@ -104,6 +114,14 @@ import { AutonomousEnterpriseModule } from './autonomous-enterprise/autonomous-e
     FoundationIntelligenceModule,
     RdFlywheelModule,
     AutonomousEnterpriseModule,
+    OutreachModule,
+    LeadGenModule,
+    SalesOutreachModule,
+    DeliveryModule,
+    SurvivalModule,
+    VoiceAssistantModule,
+    VenturesModule,
+    WorldEngineModule,
   ],
   controllers: [HealthController],
   providers: [],

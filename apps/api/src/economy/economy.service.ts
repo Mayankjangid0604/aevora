@@ -186,9 +186,9 @@ export class EconomyService {
         });
       }
 
-      const updatedAccount = await tx.realMoneyAccount.update({
+      await tx.realMoneyAccount.update({
         where: { id: destAccount.id },
-        data: { balance: destAccount.balance + amount },
+        data: { balance: { increment: amount } },
       });
 
       const transaction = await tx.realMoneyTransaction.create({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
+import { api, chairmanFetch } from '../lib/api';
 import { formatINRWhole, formatAC } from '../components/ui';
 
 export default function FinancialsPage() {
@@ -23,11 +23,11 @@ export default function FinancialsPage() {
     });
     // Phase 28 CFO analytics (best-effort — may fail if no data yet)
     Promise.allSettled([
-      fetch('/api/finance/analytics/cash-position').then(r => r.ok ? r.json() : null),
-      fetch('/api/finance/analytics/runway').then(r => r.ok ? r.json() : null),
-      fetch('/api/finance/analytics/payables-ageing').then(r => r.ok ? r.json() : null),
-      fetch('/api/finance/forecasts').then(r => r.ok ? r.json() : null),
-      fetch('/api/finance/cfo/recommendations').then(r => r.ok ? r.json() : null),
+      chairmanFetch('/finance/analytics/cash-position').then(r => r.data),
+      chairmanFetch('/finance/analytics/runway').then(r => r.data),
+      chairmanFetch('/finance/analytics/payables-ageing').then(r => r.data),
+      chairmanFetch('/finance/forecasts').then(r => r.data),
+      chairmanFetch('/finance/cfo/recommendations').then(r => r.data),
     ]).then(([cp, rw, ag, fc, recs]) => {
       if (cp.status === 'fulfilled' && cp.value) setCashPos(cp.value);
       if (rw.status === 'fulfilled' && rw.value) setRunway(rw.value);

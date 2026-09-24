@@ -8,7 +8,7 @@ import { AgentStatus, ExecutionStatus } from '@prisma/client';
 
 jest.mock('@aevora/model-gateway', () => {
   return {
-    LocalProvider: jest.fn().mockImplementation(() => {
+    ModelGateway: jest.fn().mockImplementation(() => {
       return {
         generate: jest.fn().mockResolvedValue({
           structuredOutput: {

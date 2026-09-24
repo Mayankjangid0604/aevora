@@ -106,8 +106,7 @@ export class BrandService {
       where: { companyId },
       include: { guidelines: { where: { isActive: true } } },
     });
-    if (!profile) throw new NotFoundException('Brand profile not found');
-    return profile;
+    return profile ?? null;
   }
 
   async createGuideline(companyId: string, actorId: string, dto: CreateBrandGuidelineDto) {

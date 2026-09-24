@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { chairmanFetch } from '../lib/api';
 
 type Tab = 'overview' | 'brand' | 'audiences' | 'campaigns' | 'content' | 'calendar' | 'analytics';
 
@@ -19,11 +20,11 @@ export default function MarketingPage() {
   const [personas, setPersonas] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/marketing/analytics/metrics').then(r => r.ok ? r.json() : null).then(d => setMetrics(d)).catch(() => {});
-    fetch('/marketing/campaigns').then(r => r.ok ? r.json() : null).then(d => setCampaigns(d ?? [])).catch(() => {});
-    fetch('/marketing/content').then(r => r.ok ? r.json() : null).then(d => setContent(d ?? [])).catch(() => {});
-    fetch('/marketing/brand').then(r => r.ok ? r.json() : null).then(d => setBrand(d)).catch(() => {});
-    fetch('/marketing/personas').then(r => r.ok ? r.json() : null).then(d => setPersonas(d ?? [])).catch(() => {});
+    chairmanFetch('/marketing/analytics/metrics').then(r => r.data ? setMetrics(r.data) : null).catch(() => {});
+    chairmanFetch('/marketing/campaigns').then(r => r.data ? setCampaigns(r.data) : null).catch(() => {});
+    chairmanFetch('/marketing/content').then(r => r.data ? setContent(r.data) : null).catch(() => {});
+    chairmanFetch('/marketing/brand').then(r => r.data ? setBrand(r.data) : null).catch(() => {});
+    chairmanFetch('/marketing/personas').then(r => r.data ? setPersonas(r.data) : null).catch(() => {});
   }, []);
 
   const tabs: { id: Tab; label: string }[] = [

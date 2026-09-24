@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import OutreachPanel from '../components/OutreachPanel';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 async function apiFetch(path: string) {
   try {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('aevora_jwt') : null;
     const res = await fetch(`${API_BASE}${path}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -28,7 +29,7 @@ const LEAD_STATUS_COLORS: Record<string, string> = {
   QUALIFIED: '#22c55e', UNQUALIFIED: '#ef4444', CONVERTED: '#06b6d4', ARCHIVED: '#9ca3af',
 };
 
-type Tab = 'overview' | 'leads' | 'accounts' | 'opportunities' | 'pipeline';
+type Tab = 'overview' | 'outreach' | 'leads' | 'accounts' | 'opportunities' | 'pipeline';
 
 export default function SalesPage() {
   const [tab, setTab] = useState<Tab>('overview');
@@ -78,7 +79,7 @@ export default function SalesPage() {
 
       {/* Tab navigation */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
-        {(['overview','leads','accounts','opportunities','pipeline'] as Tab[]).map(t => (
+        {(['overview','outreach','leads','accounts','opportunities','pipeline'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -94,6 +95,8 @@ export default function SalesPage() {
           </button>
         ))}
       </div>
+
+      {tab === 'outreach' && <OutreachPanel />}
 
       {/* OVERVIEW TAB */}
       {tab === 'overview' && (

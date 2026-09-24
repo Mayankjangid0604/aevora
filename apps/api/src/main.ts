@@ -4,11 +4,18 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
 async function bootstrap() {
+  try {
+    const path = require('path');
+    process.loadEnvFile(path.join(process.cwd(), '../../.env'));
+  } catch (e) {
+    console.warn('Could not load .env file from root', e.message);
+  }
+
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is required');
   }
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({

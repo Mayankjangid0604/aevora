@@ -1,4 +1,10 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+/** For pages that call fetch directly: JSON + the Chairman's bearer token. */
+export function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
 
 let _jwtToken: string | null = null;
 
@@ -52,6 +58,10 @@ export async function chairmanFetch<T = any>(path: string, opts: FetchOptions = 
       cache: 'no-store',
     });
 
+    if (res.status === 401 && typeof window !== 'undefined') {
+      clearToken();
+      window.dispatchEvent(new Event('aevora:unauthorized'));
+    }
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
       return { data: null, error: errBody.message || `HTTP ${res.status}`, loading: false };
@@ -65,6 +75,22 @@ export async function chairmanFetch<T = any>(path: string, opts: FetchOptions = 
 }
 
 // ── Typed API helpers ──
+
+export async function login(email: string, password: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actorId: email, credential: password }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.message || `Sign-in failed (HTTP ${res.status})`;
+    setToken(body.access_token);
+    return null;
+  } catch (e: any) {
+    return e.message || 'Cannot reach the AEVORA API';
+  }
+}
 
 export const api = {
   overview: () => chairmanFetch('/chairman/overview'),

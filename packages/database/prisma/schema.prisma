@@ -32,16 +32,17 @@ enum EmployeeStatus {
 }
 
 model Chairman {
-  id             String    @id @default(uuid())
-  name           String
-  email          String    @unique
-  credentialHash String?
-  credentialSalt String?
-  hashAlgorithm  String?
-  workFactor     Int?
-  companies      Company[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  credentialHash   String?
+  credentialSalt   String?
+  hashAlgorithm    String?
+  workFactor       Int?
+  companies        Company[]
+  connectedDevices ConnectedDevice[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Company {
@@ -58,6 +59,7 @@ model Company {
   realMoneyAccount           RealMoneyAccount?
   acWallet                   ACWallet?
   goals                      Goal[]
+  connectedDevices           ConnectedDevice[]
   tasks                      Task[]
   clients                    Client[]
   inquiries                  ClientInquiry[]
@@ -177,49 +179,71 @@ model Company {
   strategyReviewCycles       StrategyReviewCycle[]
   strategicExperiments       StrategicExperiment[]
   // Phase 32 relations
-  labProjects                LabProject[]            @relation("LabProjectCompany")
-  resQuestions               ResQuestion[]           @relation("ResQuestionCompany")
-  resHypotheses              ResHypothesis[]         @relation("ResHypothesisCompany")
-  labExperiments             LabExperiment[]         @relation("LabExperimentCompany")
-  labExperimentRuns          LabExperimentRun[]      @relation("LabRunCompany")
-  labResults                 LabResult[]             @relation("LabResultCompany")
-  labEvaluations             LabEvaluation[]         @relation("LabEvaluationCompany")
-  labFindings                LabFinding[]            @relation("LabFindingCompany")
-  labEvidenceItems           LabEvidenceItem[]       @relation("LabEvidenceCompany")
-  labReproductions           LabReproduction[]       @relation("LabReproductionCompany")
-  labRecommendations         LabRecommendation[]     @relation("LabRecommendationCompany")
+  labProjects                LabProject[]                @relation("LabProjectCompany")
+  resQuestions               ResQuestion[]               @relation("ResQuestionCompany")
+  resHypotheses              ResHypothesis[]             @relation("ResHypothesisCompany")
+  labExperiments             LabExperiment[]             @relation("LabExperimentCompany")
+  labExperimentRuns          LabExperimentRun[]          @relation("LabRunCompany")
+  labResults                 LabResult[]                 @relation("LabResultCompany")
+  labEvaluations             LabEvaluation[]             @relation("LabEvaluationCompany")
+  labFindings                LabFinding[]                @relation("LabFindingCompany")
+  labEvidenceItems           LabEvidenceItem[]           @relation("LabEvidenceCompany")
+  labReproductions           LabReproduction[]           @relation("LabReproductionCompany")
+  labRecommendations         LabRecommendation[]         @relation("LabRecommendationCompany")
   // Phase 33 relations
-  mpProviders                MpProvider[]            @relation("MpProviderCompany")
-  mpProviderHealth           MpProviderHealth[]      @relation("MpProvHealthCompany")
-  mpModels                   MpModel[]               @relation("MpModelCompany")
-  mpModelCapabilities        MpModelCapability[]     @relation("MpModelCapCompany")
-  mpModelVersions            MpModelVersion[]        @relation("MpModelVersionCompany")
-  mpModelHealth              MpModelHealth[]         @relation("MpModelHealthCompany")
-  mpRoutePolicies            MpRoutePolicy[]         @relation("MpRoutePolicyCompany")
-  mpFallbackChains           MpFallbackChain[]       @relation("MpFallbackChainCompany")
-  mpInferenceExecutions      MpInferenceExecution[]  @relation("MpInferenceCompany")
-  mpKillSwitches             MpKillSwitch[]          @relation("MpKillSwitchCompany")
-  mpPromptTemplates          MpPromptTemplate[]      @relation("MpPromptTemplCompany")
-  mpPromptVersions           MpPromptTemplateVersion[] @relation("MpPromptVersionCompany")
-  mpEmbeddingModels          MpEmbeddingModel[]      @relation("MpEmbeddingCompany")
+  mpProviders                MpProvider[]                @relation("MpProviderCompany")
+  mpProviderHealth           MpProviderHealth[]          @relation("MpProvHealthCompany")
+  mpModels                   MpModel[]                   @relation("MpModelCompany")
+  mpModelCapabilities        MpModelCapability[]         @relation("MpModelCapCompany")
+  mpModelVersions            MpModelVersion[]            @relation("MpModelVersionCompany")
+  mpModelHealth              MpModelHealth[]             @relation("MpModelHealthCompany")
+  mpRoutePolicies            MpRoutePolicy[]             @relation("MpRoutePolicyCompany")
+  mpFallbackChains           MpFallbackChain[]           @relation("MpFallbackChainCompany")
+  mpInferenceExecutions      MpInferenceExecution[]      @relation("MpInferenceCompany")
+  mpKillSwitches             MpKillSwitch[]              @relation("MpKillSwitchCompany")
+  mpPromptTemplates          MpPromptTemplate[]          @relation("MpPromptTemplCompany")
+  mpPromptVersions           MpPromptTemplateVersion[]   @relation("MpPromptVersionCompany")
+  mpEmbeddingModels          MpEmbeddingModel[]          @relation("MpEmbeddingCompany")
   // Phase 34 relations
-  pfProducts                 PfProduct[]             @relation("PfProductCompany")
-  pfProductIdeas             PfProductIdea[]         @relation("PfIdeaCompany")
-  pfProductAuditEvents       PfProductAuditEvent[]   @relation("PfAuditCompany")
+  pfProducts                 PfProduct[]                 @relation("PfProductCompany")
+  pfProductIdeas             PfProductIdea[]             @relation("PfIdeaCompany")
+  pfProductAuditEvents       PfProductAuditEvent[]       @relation("PfAuditCompany")
   // Phase 35 relations
-  businessUnits              BusinessUnit[]          @relation("BuCompany")
+  businessUnits              BusinessUnit[]              @relation("BuCompany")
   // Phase 36 relations
-  capitalPools               CaCapitalPool[]          @relation("CaCompany")
+  capitalPools               CaCapitalPool[]             @relation("CaCompany")
   // Phase 37 relations
-  goRegions                  GoRegion[]               @relation("GoCompany")
+  goRegions                  GoRegion[]                  @relation("GoCompany")
   // Phase 38 relations
-  fiDatasets                 FiDataset[]              @relation("FiCompany")
+  fiDatasets                 FiDataset[]                 @relation("FiCompany")
   // Phase 39 relations
-  rdPortfolios               RdPortfolio[]            @relation("RdCompany")
+  rdPortfolios               RdPortfolio[]               @relation("RdCompany")
   // Phase 40 relations
-  aeObjectives               AeEnterpriseObjective[]  @relation("AeCompany")
-  aeOperatingCycles          AeOperatingCycle[]       @relation("AeCycleCompany")
-  aeChairmanDecisions        AeChairmanDecision[]     @relation("AeDecisionCompany")
+  aeObjectives               AeEnterpriseObjective[]     @relation("AeCompany")
+  aeOperatingCycles          AeOperatingCycle[]          @relation("AeCycleCompany")
+  aeChairmanDecisions        AeChairmanDecision[]        @relation("AeDecisionCompany")
+  // Phase 41 relations
+  researchResults            ResearchResult[]
+  outreachDrafts             OutreachDraft[]
+  outreachResponses          OutreachResponse[]
+  // Phase 41: World Engine
+  worldEvents                WeWorldEvent[]
+  economicIndicators         WeEconomicIndicator[]
+  marketState                WeMarketState?
+  leadGenRuns                LeadGenRun[]
+  outreachCampaigns          OutreachCampaign[]
+  outreachScripts            OutreachScript[]
+  discoveryCalls             DiscoveryCall[]
+  clientProjects             ClientProject[]
+  survivalConfig             SurvivalConfig?
+  survivalEvents             SurvivalEvent[]
+  voiceSessions              VoiceSession[]
+  voiceCommands              VoiceCommand[]
+  ventures                   Venture[]
+  ceoReviews                 CeoReview[]
+  leadGenConfig              LeadGenConfig?
+  weeklyReports              WeeklyReport[]
+  ceoQuestions               CeoQuestion[]
 }
 
 enum RoleAccessLevel {
@@ -261,92 +285,93 @@ model Role {
 }
 
 model Employee {
-  id                   String                       @id @default(uuid())
-  name                 String
-  identitySeed         String
-  credentialHash       String?
-  credentialSalt       String?
-  hashAlgorithm        String?
-  workFactor           Int?
-  companyId            String
-  company              Company                      @relation(fields: [companyId], references: [id])
-  departmentId         String
-  department           Department                   @relation(fields: [departmentId], references: [id])
-  roleId               String
-  role                 Role                         @relation(fields: [roleId], references: [id])
-  acWallet             ACWallet?
-  status               EmployeeStatus               @default(ACTIVE)
-  salary               Int                          @default(0) // Integer AC value per period
-  hireDate             DateTime                     @default(now())
-  terminationDate      DateTime?
-  performance          Int                          @default(50) // 0-100 metric
-  reliability          Int                          @default(50) // 0-100 metric
-  experience           Int                          @default(0)
-  activity             EmployeeActivity             @default(IDLE)
-  availability         EmployeeAvailability         @default(AVAILABLE)
-  skills               EmployeeSkill[]
-  history              EmploymentHistory[]
-  agent                Agent?
-  goals                Goal[]
-  assignedTasks        Task[]                       @relation("AssignedTasks")
-  performanceRecord    EmployeePerformance?
-  projectAssignments   ProjectAssignment[]
-  taskReviews          TaskReview[]
-  trainings            EmployeeTraining[]
-  proposedDecisions    ManagementDecision[]         @relation("ProposedDecisions")
-  targetDecisions      ManagementDecision[]         @relation("TargetDecisions")
-  issuedDiscipline     EmployeeDisciplinaryAction[] @relation("IssuedDiscipline")
-  receivedDiscipline   EmployeeDisciplinaryAction[] @relation("ReceivedDiscipline")
-  conversations        ConversationParticipant[]
-  meetings             MeetingParticipant[]
-  notifications        Notification[]
-  relationshipsA       EmployeeRelationship[]       @relation("RelationshipA")
-  relationshipsB       EmployeeRelationship[]       @relation("RelationshipB")
-  createdAt            DateTime                     @default(now())
-  updatedAt            DateTime                     @updatedAt
-  PayrollEntry         PayrollEntry[]
-  createdKnowledge     KnowledgeRecord[]            @relation("CreatedKnowledge")
-  approvedKnowledge    KnowledgeRecord[]            @relation("ApprovedKnowledge")
-  KnowledgeValidation  KnowledgeValidation[]
-  intelligenceSessions IntelligenceSession[]
-  proposedDecisions1   DecisionProposal[]           @relation("DecisionProposer")
-  reviewedDecisions    DecisionReview[]             @relation("DecisionReviewer")
-  requestedAssistance  AssistanceRequest[]          @relation("AssistanceRequester")
-  targetedAssistance   AssistanceRequest[]          @relation("AssistanceTarget")
-  proposedResearch     ResearchProposal[]           @relation("ProposalProposer")
-  reviewedResearch     ResearchProposal[]           @relation("ProposalReviewer")
-  researchProjects     ResearchProject[]            @relation("ProjectOwner")
+  id                         String                       @id @default(uuid())
+  name                       String
+  identitySeed               String
+  credentialHash             String?
+  credentialSalt             String?
+  hashAlgorithm              String?
+  workFactor                 Int?
+  companyId                  String
+  company                    Company                      @relation(fields: [companyId], references: [id])
+  departmentId               String
+  department                 Department                   @relation(fields: [departmentId], references: [id])
+  roleId                     String
+  role                       Role                         @relation(fields: [roleId], references: [id])
+  acWallet                   ACWallet?
+  status                     EmployeeStatus               @default(ACTIVE)
+  salary                     Int                          @default(0) // Integer AC value per period
+  hireDate                   DateTime                     @default(now())
+  terminationDate            DateTime?
+  performance                Int                          @default(50) // 0-100 metric
+  reliability                Int                          @default(50) // 0-100 metric
+  experience                 Int                          @default(0)
+  activity                   EmployeeActivity             @default(IDLE)
+  availability               EmployeeAvailability         @default(AVAILABLE)
+  skills                     EmployeeSkill[]
+  history                    EmploymentHistory[]
+  agent                      Agent?
+  goals                      Goal[]
+  assignedTasks              Task[]                       @relation("AssignedTasks")
+  performanceRecord          EmployeePerformance?
+  projectAssignments         ProjectAssignment[]
+  taskReviews                TaskReview[]
+  trainings                  EmployeeTraining[]
+  proposedDecisions          ManagementDecision[]         @relation("ProposedDecisions")
+  targetDecisions            ManagementDecision[]         @relation("TargetDecisions")
+  issuedDiscipline           EmployeeDisciplinaryAction[] @relation("IssuedDiscipline")
+  receivedDiscipline         EmployeeDisciplinaryAction[] @relation("ReceivedDiscipline")
+  conversations              ConversationParticipant[]
+  meetings                   MeetingParticipant[]
+  notifications              Notification[]
+  relationshipsA             EmployeeRelationship[]       @relation("RelationshipA")
+  relationshipsB             EmployeeRelationship[]       @relation("RelationshipB")
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  PayrollEntry               PayrollEntry[]
+  createdKnowledge           KnowledgeRecord[]            @relation("CreatedKnowledge")
+  approvedKnowledge          KnowledgeRecord[]            @relation("ApprovedKnowledge")
+  KnowledgeValidation        KnowledgeValidation[]
+  intelligenceSessions       IntelligenceSession[]
+  proposedDecisions1         DecisionProposal[]           @relation("DecisionProposer")
+  reviewedDecisions          DecisionReview[]             @relation("DecisionReviewer")
+  requestedAssistance        AssistanceRequest[]          @relation("AssistanceRequester")
+  targetedAssistance         AssistanceRequest[]          @relation("AssistanceTarget")
+  proposedResearch           ResearchProposal[]           @relation("ProposalProposer")
+  reviewedResearch           ResearchProposal[]           @relation("ProposalReviewer")
+  researchProjects           ResearchProject[]            @relation("ProjectOwner")
   // Phase 26 relations
-  ownedOpportunities   Opportunity[]                @relation("OpportunityOwner")
-  assignedLeads        SalesLead[]                  @relation("LeadAssignee")
-  ownedAccounts        TargetAccount[]              @relation("AccountOwner")
-  salesActivities      SalesActivity[]
-  qualificationRecords QualificationRecord[]
-  salesAgentConfig     SalesAgentConfig?
+  ownedOpportunities         Opportunity[]                @relation("OpportunityOwner")
+  assignedLeads              SalesLead[]                  @relation("LeadAssignee")
+  ownedAccounts              TargetAccount[]              @relation("AccountOwner")
+  salesActivities            SalesActivity[]
+  qualificationRecords       QualificationRecord[]
+  salesAgentConfig           SalesAgentConfig?
   // Phase 25 relations
-  ownedOnboardings     CustomerOnboarding[]         @relation("OnboardingOwner")
-  requestedAcceptances CustomerAcceptance[]         @relation("AcceptanceRequestedBy")
-  draftedCommunications CustomerCommunication[]     @relation("CommDraftedBy")
+  ownedOnboardings           CustomerOnboarding[]         @relation("OnboardingOwner")
+  requestedAcceptances       CustomerAcceptance[]         @relation("AcceptanceRequestedBy")
+  draftedCommunications      CustomerCommunication[]      @relation("CommDraftedBy")
   // Phase 29 relations
-  workerProfile        WorkerProfile?               @relation("WorkerProfile")
+  workerProfile              WorkerProfile?               @relation("WorkerProfile")
   // Phase 30 relations
-  ownedObjectives      CompanyObjective[]           @relation("OwnedObjectives")
-  ownedKPIs            CompanyKPI[]                 @relation("OwnedKPIs")
-  proposedExecDecisions ExecutiveDecision[]         @relation("ProposedExecDecisions")
-  ownedInitiatives     StrategicInitiative[]        @relation("OwnedInitiatives")
-  ownedExperiments     StrategicExperiment[]        @relation("OwnedExperiments")
-  ownedRisks           CompanyRisk[]                @relation("OwnedRisks")
-  discoveredRisks      CompanyRisk[]                @relation("DiscoveredRisks")
-  ownedOpportunities30 CompanyOpportunity[]         @relation("OwnedOpportunities30")
-  createdEscalations   EscalationRecord[]           @relation("EscalatedByEmployee")
-  requestedAllocations ResourceAllocationRecord[]   @relation("RequestedAllocations")
+  ownedObjectives            CompanyObjective[]           @relation("OwnedObjectives")
+  ownedKPIs                  CompanyKPI[]                 @relation("OwnedKPIs")
+  proposedExecDecisions      ExecutiveDecision[]          @relation("ProposedExecDecisions")
+  ownedInitiatives           StrategicInitiative[]        @relation("OwnedInitiatives")
+  ownedExperiments           StrategicExperiment[]        @relation("OwnedExperiments")
+  ownedRisks                 CompanyRisk[]                @relation("OwnedRisks")
+  discoveredRisks            CompanyRisk[]                @relation("DiscoveredRisks")
+  ownedOpportunities30       CompanyOpportunity[]         @relation("OwnedOpportunities30")
+  createdEscalations         EscalationRecord[]           @relation("EscalatedByEmployee")
+  requestedAllocations       ResourceAllocationRecord[]   @relation("RequestedAllocations")
   // Phase 32 relations
-  ownedLabProjects     LabProject[]                 @relation("LabProjectOwner")
-  ownedResQuestions    ResQuestion[]                @relation("ResQuestionOwner")
-  labRunsAsRunner      LabExperimentRun[]           @relation("LabRunRunner")
-  labEvaluationsGiven  LabEvaluation[]              @relation("LabEvaluator")
-  labFindingsAuthored  LabFinding[]                 @relation("LabFindingAuthor")
-  labRecommendationsAuthored LabRecommendation[]    @relation("LabRecommendationAuthor")
+  ownedLabProjects           LabProject[]                 @relation("LabProjectOwner")
+  ownedResQuestions          ResQuestion[]                @relation("ResQuestionOwner")
+  labRunsAsRunner            LabExperimentRun[]           @relation("LabRunRunner")
+  labEvaluationsGiven        LabEvaluation[]              @relation("LabEvaluator")
+  labFindingsAuthored        LabFinding[]                 @relation("LabFindingAuthor")
+  labRecommendationsAuthored LabRecommendation[]          @relation("LabRecommendationAuthor")
+  ventureTeams               VentureTeam[]
 }
 
 enum EmployeeAvailability {
@@ -680,19 +705,19 @@ enum ClientStatus {
 }
 
 model Client {
-  id                  String               @id @default(uuid())
+  id                  String                  @id @default(uuid())
   companyId           String
-  company             Company              @relation(fields: [companyId], references: [id])
+  company             Company                 @relation(fields: [companyId], references: [id])
   name                String
   organizationName    String?
   description         String?
-  status              ClientStatus         @default(LEAD)
+  status              ClientStatus            @default(LEAD)
   contacts            ClientContact[]
   inquiries           ClientInquiry[]
   opportunities       Opportunity[]
   projects            Project[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
   Invoice             Invoice[]
   contracts           Contract[]
   proposals           Proposal[]
@@ -756,41 +781,41 @@ enum OpportunityStatus {
 }
 
 model Opportunity {
-  id               String            @id @default(uuid())
-  companyId        String
-  company          Company           @relation(fields: [companyId], references: [id])
-  clientId         String
-  client           Client            @relation(fields: [clientId], references: [id])
-  inquiryId        String?
-  inquiry          ClientInquiry?    @relation(fields: [inquiryId], references: [id])
-  title            String
-  description      String?
-  estimatedValue   Int?
-  estimatedCost    Int?
-  estimatedProfit  Int?
-  confidence       Int               @default(50) // 0-100
-  expectedDuration Int? // E.g. days
-  status           OpportunityStatus @default(DISCOVERED)
-  proposals        Proposal[]
-  projects         Project[]
-  contracts        Contract[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                String                @id @default(uuid())
+  companyId         String
+  company           Company               @relation(fields: [companyId], references: [id])
+  clientId          String
+  client            Client                @relation(fields: [clientId], references: [id])
+  inquiryId         String?
+  inquiry           ClientInquiry?        @relation(fields: [inquiryId], references: [id])
+  title             String
+  description       String?
+  estimatedValue    Int?
+  estimatedCost     Int?
+  estimatedProfit   Int?
+  confidence        Int                   @default(50) // 0-100
+  expectedDuration  Int? // E.g. days
+  status            OpportunityStatus     @default(DISCOVERED)
+  proposals         Proposal[]
+  projects          Project[]
+  contracts         Contract[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
   // Phase 26 extensions
-  ownerId          String?
-  owner            Employee?         @relation("OpportunityOwner", fields: [ownerId], references: [id])
-  salesStage       SalesStage        @default(NEW)
-  source           String?
-  currency         String            @default("INR")
-  probability      Int               @default(50)
+  ownerId           String?
+  owner             Employee?             @relation("OpportunityOwner", fields: [ownerId], references: [id])
+  salesStage        SalesStage            @default(NEW)
+  source            String?
+  currency          String                @default("INR")
+  probability       Int                   @default(50)
   expectedCloseDate DateTime?
-  lastActivityAt   DateTime?
-  salesLeadId      String?
-  salesLead        SalesLead?        @relation(fields: [salesLeadId], references: [id])
-  salesActivities  SalesActivity[]
-  scores           OpportunityScore[]
-  qualifications   QualificationRecord[]
-  salesAuditEvents SalesAuditEvent[]
+  lastActivityAt    DateTime?
+  salesLeadId       String?
+  salesLead         SalesLead?            @relation(fields: [salesLeadId], references: [id])
+  salesActivities   SalesActivity[]
+  scores            OpportunityScore[]
+  qualifications    QualificationRecord[]
+  salesAuditEvents  SalesAuditEvent[]
 }
 
 enum ProposalStatus {
@@ -863,15 +888,15 @@ enum ProjectStatus {
 }
 
 model Project {
-  id                   String                @id @default(uuid())
+  id                   String                  @id @default(uuid())
   companyId            String
-  company              Company               @relation(fields: [companyId], references: [id])
+  company              Company                 @relation(fields: [companyId], references: [id])
   clientId             String
-  client               Client                @relation(fields: [clientId], references: [id])
+  client               Client                  @relation(fields: [clientId], references: [id])
   opportunityId        String
-  opportunity          Opportunity           @relation(fields: [opportunityId], references: [id])
+  opportunity          Opportunity             @relation(fields: [opportunityId], references: [id])
   proposalId           String
-  proposal             Proposal              @relation(fields: [proposalId], references: [id])
+  proposal             Proposal                @relation(fields: [proposalId], references: [id])
   name                 String
   description          String?
   quotedPrice          Int?
@@ -881,8 +906,8 @@ model Project {
   actualCost           Int?
   acCost               Int?
   margin               Int?
-  financialStatus      String?               @default("PENDING")
-  status               ProjectStatus         @default(PLANNED)
+  financialStatus      String?                 @default("PENDING")
+  status               ProjectStatus           @default(PLANNED)
   startDate            DateTime?
   targetEndDate        DateTime?
   tasks                Task[] // One-to-many with Task
@@ -897,8 +922,8 @@ model Project {
   conversations        Conversation[]
   meetings             Meeting[]
   contracts            Contract[]
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
   ProjectBudget        ProjectBudget[]
   KnowledgeRecord      KnowledgeRecord[]
   intelligenceSessions IntelligenceSession[]
@@ -1048,16 +1073,16 @@ enum ProjectDeliveryStatus {
 }
 
 model ProjectDelivery {
-  id           String                @id @default(uuid())
-  projectId    String
-  project      Project               @relation(fields: [projectId], references: [id])
-  version      Int                   @default(1)
-  summary      String
-  deliverables String
-  status       ProjectDeliveryStatus @default(PENDING)
-  createdAt    DateTime              @default(now())
-  approvedAt   DateTime?
-  deliveredAt  DateTime?
+  id                  String                @id @default(uuid())
+  projectId           String
+  project             Project               @relation(fields: [projectId], references: [id])
+  version             Int                   @default(1)
+  summary             String
+  deliverables        String
+  status              ProjectDeliveryStatus @default(PENDING)
+  createdAt           DateTime              @default(now())
+  approvedAt          DateTime?
+  deliveredAt         DateTime?
   // Phase 25 relations
   customerAcceptances CustomerAcceptance[]
 }
@@ -2689,28 +2714,28 @@ enum ApprovalRiskLevel {
 }
 
 model ApprovalRequest {
-  id              String                @id @default(uuid())
-  companyId       String
-  requesterId     String
-  action          String
-  targetType      String?
-  targetId        String?
-  proposedParams  Json                  @default("{}")
-  riskLevel       ApprovalRiskLevel     @default(MEDIUM)
-  financialImpact Int?
-  reasoning       String?
-  status          ApprovalRequestStatus @default(PENDING)
-  environment     ExecutionEnvironment  @default(SIMULATION)
-  expiresAt       DateTime?
-  decisionTime    DateTime?
-  approverId      String?
-  decisionReason  String?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  company         Company               @relation(fields: [companyId], references: [id])
-  backgroundJobs  BackgroundJob[]
-  invoices        Invoice[]
-  contracts       Contract[]
+  id                     String                  @id @default(uuid())
+  companyId              String
+  requesterId            String
+  action                 String
+  targetType             String?
+  targetId               String?
+  proposedParams         Json                    @default("{}")
+  riskLevel              ApprovalRiskLevel       @default(MEDIUM)
+  financialImpact        Int?
+  reasoning              String?
+  status                 ApprovalRequestStatus   @default(PENDING)
+  environment            ExecutionEnvironment    @default(SIMULATION)
+  expiresAt              DateTime?
+  decisionTime           DateTime?
+  approverId             String?
+  decisionReason         String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  company                Company                 @relation(fields: [companyId], references: [id])
+  backgroundJobs         BackgroundJob[]
+  invoices               Invoice[]
+  contracts              Contract[]
   // Phase 25 relations
   customerCommunications CustomerCommunication[]
 }
@@ -2726,31 +2751,31 @@ enum InvoiceStatus {
 }
 
 model Invoice {
-  id               String               @id @default(uuid())
-  companyId        String
-  clientId         String
-  projectId        String?
-  invoiceNumber    String               @unique
-  environment      ExecutionEnvironment @default(SIMULATION)
-  currency         String               @default("INR")
-  subtotal         Int
-  taxAmount        Int                  @default(0)
-  total            Int
-  status           InvoiceStatus        @default(DRAFT)
-  issueDate        DateTime?
-  dueDate          DateTime?
-  paidDate         DateTime?
-  paymentReference String?
-  notes            String?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  company          Company              @relation(fields: [companyId], references: [id])
-  client           Client               @relation(fields: [clientId], references: [id])
-  project          Project?             @relation(fields: [projectId], references: [id])
-  lineItems        InvoiceLineItem[]
-  approvalId       String?
-  approval         ApprovalRequest?     @relation(fields: [approvalId], references: [id])
-  paymentEvents    PaymentEvent[]
+  id                String               @id @default(uuid())
+  companyId         String
+  clientId          String
+  projectId         String?
+  invoiceNumber     String               @unique
+  environment       ExecutionEnvironment @default(SIMULATION)
+  currency          String               @default("INR")
+  subtotal          Int
+  taxAmount         Int                  @default(0)
+  total             Int
+  status            InvoiceStatus        @default(DRAFT)
+  issueDate         DateTime?
+  dueDate           DateTime?
+  paidDate          DateTime?
+  paymentReference  String?
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  company           Company              @relation(fields: [companyId], references: [id])
+  client            Client               @relation(fields: [clientId], references: [id])
+  project           Project?             @relation(fields: [projectId], references: [id])
+  lineItems         InvoiceLineItem[]
+  approvalId        String?
+  approval          ApprovalRequest?     @relation(fields: [approvalId], references: [id])
+  paymentEvents     PaymentEvent[]
   // Phase 25 relations
   billingMilestones BillingMilestone[]
 }
@@ -2779,30 +2804,30 @@ enum ContractStatus {
 }
 
 model Contract {
-  id              String           @id @default(uuid())
-  companyId       String
-  company         Company          @relation(fields: [companyId], references: [id])
-  clientId        String
-  client          Client           @relation(fields: [clientId], references: [id])
-  projectId       String?
-  project         Project?         @relation(fields: [projectId], references: [id])
-  opportunityId   String?
-  opportunity     Opportunity?     @relation(fields: [opportunityId], references: [id])
-  title           String
-  content         String
-  status          ContractStatus   @default(DRAFT)
-  version         Int              @default(1)
-  contentHash     String?
-  parties         Json             @default("[]")
-  commercialTerms Json             @default("{}")
-  effectiveDate   DateTime?
-  approvalId      String?
-  approval        ApprovalRequest? @relation(fields: [approvalId], references: [id])
-  executionState  Json             @default("{}")
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                String               @id @default(uuid())
+  companyId         String
+  company           Company              @relation(fields: [companyId], references: [id])
+  clientId          String
+  client            Client               @relation(fields: [clientId], references: [id])
+  projectId         String?
+  project           Project?             @relation(fields: [projectId], references: [id])
+  opportunityId     String?
+  opportunity       Opportunity?         @relation(fields: [opportunityId], references: [id])
+  title             String
+  content           String
+  status            ContractStatus       @default(DRAFT)
+  version           Int                  @default(1)
+  contentHash       String?
+  parties           Json                 @default("[]")
+  commercialTerms   Json                 @default("{}")
+  effectiveDate     DateTime?
+  approvalId        String?
+  approval          ApprovalRequest?     @relation(fields: [approvalId], references: [id])
+  executionState    Json                 @default("{}")
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
   // Phase 25 relations
-  onboardings     CustomerOnboarding[]
+  onboardings       CustomerOnboarding[]
   billingMilestones BillingMilestone[]
 }
 
@@ -3009,34 +3034,414 @@ enum SalesActorType {
 }
 
 model SalesLead {
-  id                    String                @id @default(uuid())
-  companyId             String
-  company               Company               @relation(fields: [companyId], references: [id])
-  name                  String
-  organizationName      String?
-  contactName           String?
-  contactRole           String?
-  contactEmail          String?
-  contactPhone          String?
-  source                String?
-  industry              String?
-  geography             String?
-  companySize           String?
-  status                SalesLeadStatus       @default(NEW)
-  assignedToId          String?
-  assignedTo            Employee?             @relation("LeadAssignee", fields: [assignedToId], references: [id])
-  targetAccountId       String?
-  targetAccount         TargetAccount?        @relation(fields: [targetAccountId], references: [id])
-  convertedClientId     String?
+  id                     String                @id @default(uuid())
+  companyId              String
+  company                Company               @relation(fields: [companyId], references: [id])
+  name                   String
+  organizationName       String?
+  contactName            String?
+  contactRole            String?
+  contactEmail           String?
+  contactPhone           String?
+  source                 String?
+  industry               String?
+  geography              String?
+  companySize            String?
+  status                 SalesLeadStatus       @default(NEW)
+  assignedToId           String?
+  assignedTo             Employee?             @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  targetAccountId        String?
+  targetAccount          TargetAccount?        @relation(fields: [targetAccountId], references: [id])
+  convertedClientId      String?
   convertedOpportunityId String?
-  notes                 String?
-  metadata              Json                  @default("{}")
-  activities            SalesActivity[]
-  qualifications        QualificationRecord[]
-  salesAuditEvents      SalesAuditEvent[]
-  opportunities         Opportunity[]
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  notes                  String?
+  metadata               Json                  @default("{}")
+  activities             SalesActivity[]
+  qualifications         QualificationRecord[]
+  salesAuditEvents       SalesAuditEvent[]
+  opportunities          Opportunity[]
+  googlePlaceId          String?
+  website                String?
+  qualityScore           Int?
+  lastContactedAt        DateTime?
+  leadGenAudits          LeadGenAudit[]
+  outreachCampaigns      OutreachCampaign[]
+  discoveryCalls         DiscoveryCall[]
+  clientProjects         ClientProject[]
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  @@unique([companyId, googlePlaceId])
+  @@index([companyId, status, qualityScore])
+}
+
+model LeadGenRun {
+  id          String    @id @default(uuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  status      String    @default("RUNNING") // RUNNING | COMPLETED | FAILED
+  triggeredBy String    @default("SCHEDULE")
+  error       String?
+  triggeredAt DateTime  @default(now())
+  completedAt DateTime?
+  totalFound  Int       @default(0)
+  totalNew    Int       @default(0)
+
+  @@index([companyId, triggeredAt])
+}
+
+model LeadGenAudit {
+  id        String    @id @default(uuid())
+  leadId    String
+  lead      SalesLead @relation(fields: [leadId], references: [id])
+  event     String
+  detail    Json      @default("{}")
+  actorId   String?
+  createdAt DateTime  @default(now())
+
+  @@index([leadId])
+}
+
+enum OutreachChannel {
+  EMAIL
+  PHONE
+  WHATSAPP
+}
+
+enum OutreachCampaignStatus {
+  SCHEDULED
+  SENT
+  RESPONDED
+  FAILED
+  CLOSED
+}
+
+enum OutreachOutcome {
+  NO_RESPONSE
+  INTERESTED
+  NOT_INTERESTED
+  BOOKED
+}
+
+enum DiscoveryCallStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model OutreachCampaign {
+  id                 String                 @id @default(uuid())
+  companyId          String
+  company            Company                @relation(fields: [companyId], references: [id])
+  leadId             String
+  lead               SalesLead              @relation(fields: [leadId], references: [id])
+  status             OutreachCampaignStatus @default(SCHEDULED)
+  channel            OutreachChannel
+  assignedAgentId    String?
+  scriptId           String?
+  scheduledAt        DateTime               @default(now())
+  sentAt             DateTime?
+  responseReceivedAt DateTime?
+  outcome            OutreachOutcome?
+  notes              String?
+  error              String?
+  idempotencyKey     String                 @unique
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@index([companyId, status, sentAt])
+  @@index([leadId])
+}
+
+model OutreachScript {
+  id               String          @id @default(uuid())
+  companyId        String
+  company          Company         @relation(fields: [companyId], references: [id])
+  channel          OutreachChannel
+  templateName     String
+  subjectTemplate  String?
+  bodyTemplate     String
+  isActive         Boolean         @default(true)
+  parentId         String? // script this version was rewritten from (A/B lineage)
+  evaluatedAtCount Int             @default(0) // campaign count at the last optimizer evaluation
+  responseRatePct  Int? // positive-response % measured at that evaluation
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([companyId, templateName])
+}
+
+model DiscoveryCall {
+  id              String              @id @default(uuid())
+  companyId       String
+  company         Company             @relation(fields: [companyId], references: [id])
+  leadId          String
+  lead            SalesLead           @relation(fields: [leadId], references: [id])
+  campaignId      String?             @unique
+  scheduledAt     DateTime            @default(now())
+  conductedAt     DateTime?
+  transcript      String?
+  extractedNeeds  Json?
+  estimatedBudget Int? // paise
+  status          DiscoveryCallStatus @default(SCHEDULED)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([companyId, status])
+}
+
+enum ClientProjectType {
+  WEBSITE
+  SAAS
+  AUTOMATION
+  APP
+}
+
+enum ClientProjectStatus {
+  SCOPING
+  BUILDING
+  SAMPLE_SENT
+  REVISION
+  APPROVED
+  INVOICED
+  PAID
+  CLOSED
+  FAILED
+}
+
+model ClientProject {
+  id                  String              @id @default(uuid())
+  companyId           String
+  company             Company             @relation(fields: [companyId], references: [id])
+  leadId              String
+  lead                SalesLead           @relation(fields: [leadId], references: [id])
+  discoveryCallId     String?             @unique
+  clientId            String?
+  projectType         ClientProjectType
+  requirements        Json                @default("{}")
+  scope               Json?
+  status              ClientProjectStatus @default(SCOPING)
+  sampleHtml          String?
+  sampleUrl           String?
+  finalUrl            String?
+  revisionCount       Int                 @default(0)
+  quotedAmount        Int? // paise
+  invoiceId           String?             @unique
+  paymentLinkUrl      String?
+  paymentRef          String?
+  lastReminderAt      DateTime?
+  paidAt              DateTime?
+  error               String?
+  ceoFollowUpAt       DateTime? // CEO nudged a stale SAMPLE_SENT project
+  referralRequestedAt DateTime? // CEO asked a paying client for an introduction
+  ceoNotes            String? // e.g. discount offered, pending Chairman approval
+  idempotencyKey      String              @unique
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([companyId, status])
+}
+
+enum SurvivalStatus {
+  HEALTHY
+  WARNING
+  CRITICAL
+  SHUTDOWN
+}
+
+model SurvivalConfig {
+  id                  String         @id @default(uuid())
+  companyId           String         @unique
+  company             Company        @relation(fields: [companyId], references: [id])
+  minBalancePaise     Int            @default(50000)
+  warningBalancePaise Int            @default(200000)
+  currentStatus       SurvivalStatus @default(HEALTHY)
+  lastBalancePaise    Int            @default(0)
+  lastCheckedAt       DateTime?
+  shutdownAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model SurvivalEvent {
+  id           String   @id @default(uuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id])
+  event        String
+  balancePaise Int
+  detail       Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([companyId, createdAt])
+}
+
+enum VoiceCommandStatus {
+  RECEIVED
+  EXECUTED
+  PENDING
+  FAILED
+}
+
+model VoiceSession {
+  id           String         @id @default(uuid())
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id])
+  startedAt    DateTime       @default(now())
+  endedAt      DateTime?
+  commandCount Int            @default(0)
+  commands     VoiceCommand[]
+
+  @@index([companyId, startedAt])
+}
+
+model VoiceCommand {
+  id         String             @id @default(uuid())
+  companyId  String
+  company    Company            @relation(fields: [companyId], references: [id])
+  sessionId  String?
+  session    VoiceSession?      @relation(fields: [sessionId], references: [id])
+  actorId    String
+  transcript String
+  intent     Json               @default("{}")
+  routedTo   String?
+  response   String?
+  error      String?
+  status     VoiceCommandStatus @default(RECEIVED)
+  executedAt DateTime?
+  createdAt  DateTime           @default(now())
+
+  @@index([companyId, status, createdAt])
+}
+
+enum VentureStatus {
+  FORMING
+  ACTIVE
+  PAUSED
+  CLOSED
+  FAILED
+}
+
+model Venture {
+  id               String        @id @default(uuid())
+  companyId        String
+  company          Company       @relation(fields: [companyId], references: [id])
+  idea             String
+  name             String
+  plan             Json          @default("{}")
+  teamSize         Int           @default(0)
+  departmentId     String?
+  firstTaskId      String?
+  status           VentureStatus @default(FORMING)
+  chairmanApproved Boolean       @default(false)
+  voiceCommandId   String?       @unique
+  error            String?
+  idempotencyKey   String        @unique
+  team             VentureTeam[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([companyId, status])
+}
+
+model VentureTeam {
+  id         String   @id @default(uuid())
+  ventureId  String
+  venture    Venture  @relation(fields: [ventureId], references: [id])
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  role       String
+  createdAt  DateTime @default(now())
+
+  @@unique([ventureId, employeeId])
+  @@index([employeeId])
+}
+
+model CeoReview {
+  id                String   @id @default(uuid())
+  companyId         String
+  company           Company  @relation(fields: [companyId], references: [id])
+  ceoEmployeeId     String
+  simHour           String // simulation date-hour key, e.g. 2026-09-24T09 — one review per sim hour
+  reviewedAt        DateTime @default(now())
+  leadsFound        Int      @default(0)
+  leadsContacted    Int      @default(0)
+  leadsQualified    Int      @default(0)
+  dealsInProgress   Int      @default(0)
+  paidThisWeek      Int      @default(0) // paise
+  balancePaise      Int      @default(0)
+  survivalStatus    String
+  topRisk           String
+  topOpportunity    String
+  decisionsProposed Json     @default("[]") // [{type, reason, parameters, outcome, detail}]
+  weeklyReport      String
+  sentToChairman    Boolean  @default(false)
+
+  @@unique([companyId, simHour])
+  @@index([companyId, reviewedAt])
+}
+
+/// Company-level lead-gen targeting, editable by the CEO; falls back to LEAD_GEN_CATEGORIES env.
+model LeadGenConfig {
+  id         String   @id @default(uuid())
+  companyId  String   @unique
+  company    Company  @relation(fields: [companyId], references: [id])
+  categories String[]
+  weights    Json     @default("{}") // category → searches per cycle (1 default, 2 for high converters)
+  dropped    String[] // categories the CEO dropped for poor conversion; never re-added automatically
+  updatedBy  String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
+model WeeklyReport {
+  id                    String    @id @default(uuid())
+  companyId             String
+  company               Company   @relation(fields: [companyId], references: [id])
+  ceoEmployeeId         String
+  weekStartDate         DateTime // Monday 00:00 (simulation calendar) of the week reported on
+  weekEndDate           DateTime
+  leadsFoundCount       Int       @default(0)
+  leadsContactedCount   Int       @default(0)
+  dealsWonCount         Int       @default(0)
+  revenueEarnedPaise    Int       @default(0)
+  topPerformingCategory String?
+  biggestChallenge      String
+  ceoCommentary         String
+  sentAt                DateTime?
+  createdAt             DateTime  @default(now())
+
+  @@unique([companyId, weekStartDate])
+  @@index([companyId, createdAt])
+}
+
+enum CeoQuestionUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CeoQuestionStatus {
+  OPEN // waiting for the Chairman
+  ANSWERED // answered, not yet read by the CEO
+  USED // CEO folded the answer into a review
+  EXPIRED
+}
+
+model CeoQuestion {
+  id             String             @id @default(uuid())
+  companyId      String
+  company        Company            @relation(fields: [companyId], references: [id])
+  ceoReviewId    String?
+  question       String
+  context        Json               @default("{}")
+  urgency        CeoQuestionUrgency @default(MEDIUM)
+  status         CeoQuestionStatus  @default(OPEN)
+  askedAt        DateTime           @default(now())
+  answeredAt     DateTime?
+  chairmanAnswer String?
+  usedAt         DateTime?
+
+  @@index([companyId, status])
 }
 
 model TargetAccount {
@@ -3090,31 +3495,31 @@ model SalesActivity {
 }
 
 model QualificationRecord {
-  id                          String                      @id @default(uuid())
-  companyId                   String
-  company                     Company                     @relation(fields: [companyId], references: [id])
-  evaluatorId                 String
-  evaluator                   Employee                    @relation(fields: [evaluatorId], references: [id])
-  evaluatorType               SalesActorType              @default(HUMAN)
-  opportunityId               String?
-  opportunity                 Opportunity?                @relation(fields: [opportunityId], references: [id])
-  salesLeadId                 String?
-  salesLead                   SalesLead?                  @relation(fields: [salesLeadId], references: [id])
-  customerFitScore            Int?
-  problemClarityScore         Int?
-  budgetSignalScore           Int?
-  urgencyScore                Int?
-  authorityScore              Int?
-  technicalFeasibilityScore   Int?
-  strategicRelevanceScore     Int?
-  deliveryFeasibilityScore    Int?
-  riskScore                   Int?
-  overallScore                Int
-  recommendation              QualificationRecommendation
-  reasoning                   String
-  evidence                    Json                        @default("[]")
-  scoringVersion              String                      @default("1.0")
-  createdAt                   DateTime                    @default(now())
+  id                        String                      @id @default(uuid())
+  companyId                 String
+  company                   Company                     @relation(fields: [companyId], references: [id])
+  evaluatorId               String
+  evaluator                 Employee                    @relation(fields: [evaluatorId], references: [id])
+  evaluatorType             SalesActorType              @default(HUMAN)
+  opportunityId             String?
+  opportunity               Opportunity?                @relation(fields: [opportunityId], references: [id])
+  salesLeadId               String?
+  salesLead                 SalesLead?                  @relation(fields: [salesLeadId], references: [id])
+  customerFitScore          Int?
+  problemClarityScore       Int?
+  budgetSignalScore         Int?
+  urgencyScore              Int?
+  authorityScore            Int?
+  technicalFeasibilityScore Int?
+  strategicRelevanceScore   Int?
+  deliveryFeasibilityScore  Int?
+  riskScore                 Int?
+  overallScore              Int
+  recommendation            QualificationRecommendation
+  reasoning                 String
+  evidence                  Json                        @default("[]")
+  scoringVersion            String                      @default("1.0")
+  createdAt                 DateTime                    @default(now())
 }
 
 model OpportunityScore {
@@ -3137,40 +3542,40 @@ model OpportunityScore {
 }
 
 model SalesAuditEvent {
-  id              String          @id @default(uuid())
+  id              String         @id @default(uuid())
   companyId       String
-  company         Company         @relation(fields: [companyId], references: [id])
+  company         Company        @relation(fields: [companyId], references: [id])
   actorId         String
-  actorType       SalesActorType  @default(HUMAN)
+  actorType       SalesActorType @default(HUMAN)
   action          String
   objectType      String
   objectId        String
   oldValue        Json?
   newValue        Json?
-  outcome         String          @default("SUCCESS")
+  outcome         String         @default("SUCCESS")
   correlationId   String?
   opportunityId   String?
-  opportunity     Opportunity?    @relation(fields: [opportunityId], references: [id])
+  opportunity     Opportunity?   @relation(fields: [opportunityId], references: [id])
   salesLeadId     String?
-  salesLead       SalesLead?      @relation(fields: [salesLeadId], references: [id])
+  salesLead       SalesLead?     @relation(fields: [salesLeadId], references: [id])
   targetAccountId String?
-  targetAccount   TargetAccount?  @relation(fields: [targetAccountId], references: [id])
-  timestamp       DateTime        @default(now())
+  targetAccount   TargetAccount? @relation(fields: [targetAccountId], references: [id])
+  timestamp       DateTime       @default(now())
 }
 
 model SalesAgentConfig {
-  id           String    @id @default(uuid())
-  companyId    String
-  employeeId   String    @unique
-  employee     Employee  @relation(fields: [employeeId], references: [id])
-  agentRole    String
-  permissions  Json      @default("[]")
-  constraints  Json      @default("{}")
-  objectives   Json      @default("[]")
-  isActive     Boolean   @default(true)
-  grantedById  String?
-  grantedAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String   @id @default(uuid())
+  companyId   String
+  employeeId  String   @unique
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  agentRole   String
+  permissions Json     @default("[]")
+  constraints Json     @default("{}")
+  objectives  Json     @default("[]")
+  isActive    Boolean  @default(true)
+  grantedById String?
+  grantedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ------------------------------------------------------
@@ -3217,80 +3622,80 @@ enum CommunicationStatus {
 }
 
 model CustomerOnboarding {
-  id                    String           @id @default(uuid())
-  companyId             String
-  company               Company          @relation(fields: [companyId], references: [id])
-  clientId              String
-  client                Client           @relation(fields: [clientId], references: [id])
-  contractId            String?
-  contract              Contract?        @relation(fields: [contractId], references: [id])
-  projectId             String?
-  project               Project?         @relation(fields: [projectId], references: [id])
-  ownerId               String?
-  owner                 Employee?        @relation("OnboardingOwner", fields: [ownerId], references: [id])
-  status                OnboardingStatus @default(IN_PROGRESS)
-  checklist             Json             @default("[]")
-  requirements          String?
-  scope                 String?
-  deliverables          String?
-  timeline              String?
-  billingInfo           Json             @default("{}")
-  communicationPref     String?
-  notes                 String?
-  dueAt                 DateTime?
-  completedAt           DateTime?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  companyId         String
+  company           Company          @relation(fields: [companyId], references: [id])
+  clientId          String
+  client            Client           @relation(fields: [clientId], references: [id])
+  contractId        String?
+  contract          Contract?        @relation(fields: [contractId], references: [id])
+  projectId         String?
+  project           Project?         @relation(fields: [projectId], references: [id])
+  ownerId           String?
+  owner             Employee?        @relation("OnboardingOwner", fields: [ownerId], references: [id])
+  status            OnboardingStatus @default(IN_PROGRESS)
+  checklist         Json             @default("[]")
+  requirements      String?
+  scope             String?
+  deliverables      String?
+  timeline          String?
+  billingInfo       Json             @default("{}")
+  communicationPref String?
+  notes             String?
+  dueAt             DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@index([companyId, clientId])
 }
 
 model CustomerAcceptance {
-  id              String                   @id @default(uuid())
-  companyId       String
-  company         Company                  @relation(fields: [companyId], references: [id])
-  projectId       String
-  project         Project                  @relation(fields: [projectId], references: [id])
-  clientId        String
-  client          Client                   @relation(fields: [clientId], references: [id])
-  deliveryId      String?
-  delivery        ProjectDelivery?         @relation(fields: [deliveryId], references: [id])
-  requestedById   String
-  requestedBy     Employee                 @relation("AcceptanceRequestedBy", fields: [requestedById], references: [id])
-  customerActorId String?
-  scope           String
-  evidence        Json                     @default("{}")
-  status          CustomerAcceptanceStatus @default(PENDING)
-  rejectionReason String?
+  id               String                   @id @default(uuid())
+  companyId        String
+  company          Company                  @relation(fields: [companyId], references: [id])
+  projectId        String
+  project          Project                  @relation(fields: [projectId], references: [id])
+  clientId         String
+  client           Client                   @relation(fields: [clientId], references: [id])
+  deliveryId       String?
+  delivery         ProjectDelivery?         @relation(fields: [deliveryId], references: [id])
+  requestedById    String
+  requestedBy      Employee                 @relation("AcceptanceRequestedBy", fields: [requestedById], references: [id])
+  customerActorId  String?
+  scope            String
+  evidence         Json                     @default("{}")
+  status           CustomerAcceptanceStatus @default(PENDING)
+  rejectionReason  String?
   changesRequested String?
-  acceptedAt      DateTime?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  idempotencyKey  String?                  @unique
+  acceptedAt       DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  idempotencyKey   String?                  @unique
 
   @@index([companyId, projectId])
 }
 
 model BillingMilestone {
-  id              String                 @id @default(uuid())
-  companyId       String
-  company         Company                @relation(fields: [companyId], references: [id])
-  contractId      String
-  contract        Contract               @relation(fields: [contractId], references: [id])
-  projectId       String?
-  project         Project?               @relation(fields: [projectId], references: [id])
-  name            String
-  description     String?
-  amount          Int
-  currency        String                 @default("INR")
+  id               String                 @id @default(uuid())
+  companyId        String
+  company          Company                @relation(fields: [companyId], references: [id])
+  contractId       String
+  contract         Contract               @relation(fields: [contractId], references: [id])
+  projectId        String?
+  project          Project?               @relation(fields: [projectId], references: [id])
+  name             String
+  description      String?
+  amount           Int
+  currency         String                 @default("INR")
   billingCondition String
-  status          BillingMilestoneStatus @default(PENDING)
-  dueAt           DateTime?
-  billedAt        DateTime?
-  invoiceId       String?
-  invoice         Invoice?               @relation(fields: [invoiceId], references: [id])
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
+  status           BillingMilestoneStatus @default(PENDING)
+  dueAt            DateTime?
+  billedAt         DateTime?
+  invoiceId        String?
+  invoice          Invoice?               @relation(fields: [invoiceId], references: [id])
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 
   @@index([companyId, contractId])
 }
@@ -3313,48 +3718,48 @@ model CustomerHealthRecord {
 }
 
 model CustomerCommunication {
-  id              String              @id @default(uuid())
-  companyId       String
-  company         Company             @relation(fields: [companyId], references: [id])
-  clientId        String
-  client          Client              @relation(fields: [clientId], references: [id])
-  projectId       String?
-  project         Project?            @relation(fields: [projectId], references: [id])
-  draftedById     String
-  draftedBy       Employee            @relation("CommDraftedBy", fields: [draftedById], references: [id])
-  channel         String
-  subject         String
-  body            String
-  intent          String
-  status          CommunicationStatus @default(DRAFT)
-  approvalId      String?
-  approval        ApprovalRequest?    @relation(fields: [approvalId], references: [id])
-  providerRef     String?
-  providerResult  Json?
-  idempotencyKey  String?             @unique
-  sentAt          DateTime?
-  error           String?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id             String              @id @default(uuid())
+  companyId      String
+  company        Company             @relation(fields: [companyId], references: [id])
+  clientId       String
+  client         Client              @relation(fields: [clientId], references: [id])
+  projectId      String?
+  project        Project?            @relation(fields: [projectId], references: [id])
+  draftedById    String
+  draftedBy      Employee            @relation("CommDraftedBy", fields: [draftedById], references: [id])
+  channel        String
+  subject        String
+  body           String
+  intent         String
+  status         CommunicationStatus @default(DRAFT)
+  approvalId     String?
+  approval       ApprovalRequest?    @relation(fields: [approvalId], references: [id])
+  providerRef    String?
+  providerResult Json?
+  idempotencyKey String?             @unique
+  sentAt         DateTime?
+  error          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@index([companyId, clientId])
 }
 
 model CustomerAuditEvent {
-  id          String   @id @default(uuid())
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id])
-  actorId     String
-  actorType   String   @default("HUMAN")
-  action      String
-  objectType  String
-  objectId    String
-  oldValue    Json?
-  newValue    Json?
-  outcome     String   @default("SUCCESS")
-  clientId    String?
-  projectId   String?
-  timestamp   DateTime @default(now())
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  actorId    String
+  actorType  String   @default("HUMAN")
+  action     String
+  objectType String
+  objectId   String
+  oldValue   Json?
+  newValue   Json?
+  outcome    String   @default("SUCCESS")
+  clientId   String?
+  projectId  String?
+  timestamp  DateTime @default(now())
 
   @@index([companyId, objectType, objectId])
 }
@@ -3412,9 +3817,9 @@ enum MarketingChannel {
 }
 
 model BrandProfile {
-  id                  String          @id @default(uuid())
-  companyId           String          @unique
-  company             Company         @relation(fields: [companyId], references: [id])
+  id                  String   @id @default(uuid())
+  companyId           String   @unique
+  company             Company  @relation(fields: [companyId], references: [id])
   brandName           String
   positioning         String?
   mission             String?
@@ -3422,35 +3827,35 @@ model BrandProfile {
   targetAudience      String?
   tone                String?
   voice               String?
-  approvedMessaging   Json            @default("[]")
-  prohibitedMessaging Json            @default("[]")
+  approvedMessaging   Json     @default("[]")
+  prohibitedMessaging Json     @default("[]")
   visualIdentityRef   String?
-  version             Int             @default(1)
+  version             Int      @default(1)
   createdById         String
   updatedById         String?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  guidelines          BrandGuideline[]
-  campaigns           MarketingCampaign[]
-  contents            MarketingContent[]
+  guidelines BrandGuideline[]
+  campaigns  MarketingCampaign[]
+  contents   MarketingContent[]
 }
 
 model BrandGuideline {
-  id               String       @id @default(uuid())
-  companyId        String
-  company          Company      @relation(fields: [companyId], references: [id])
-  brandProfileId   String
-  brandProfile     BrandProfile @relation(fields: [brandProfileId], references: [id])
-  category         String       // TONE, VOICE, MESSAGING, TERMINOLOGY, PROHIBITION, DISCLAIMER, AUDIENCE, CHANNEL_SPECIFIC
-  title            String
-  body             String
-  channelScope     MarketingChannel?
-  version          Int          @default(1)
-  isActive         Boolean      @default(true)
-  createdById      String
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id             String            @id @default(uuid())
+  companyId      String
+  company        Company           @relation(fields: [companyId], references: [id])
+  brandProfileId String
+  brandProfile   BrandProfile      @relation(fields: [brandProfileId], references: [id])
+  category       String // TONE, VOICE, MESSAGING, TERMINOLOGY, PROHIBITION, DISCLAIMER, AUDIENCE, CHANNEL_SPECIFIC
+  title          String
+  body           String
+  channelScope   MarketingChannel?
+  version        Int               @default(1)
+  isActive       Boolean           @default(true)
+  createdById    String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   @@index([companyId, brandProfileId])
 }
@@ -3479,196 +3884,196 @@ model MarketPersona {
 }
 
 model MarketResearch {
-  id             String              @id @default(uuid())
-  companyId      String
-  company        Company             @relation(fields: [companyId], references: [id])
-  title          String
-  researchType   String              // MARKET_SEGMENT, COMPETITIVE, AUDIENCE, SIGNAL
-  findings       Json                @default("{}")
-  observedFacts  Json                @default("[]")
-  inferences     Json                @default("[]")
-  recommendations Json               @default("[]")
-  sources        Json                @default("[]")
-  generatedByAI  Boolean             @default(false)
-  aiModelId      String?
-  aiGeneratedAt  DateTime?
-  researchedById String
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id              String    @id @default(uuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  title           String
+  researchType    String // MARKET_SEGMENT, COMPETITIVE, AUDIENCE, SIGNAL
+  findings        Json      @default("{}")
+  observedFacts   Json      @default("[]")
+  inferences      Json      @default("[]")
+  recommendations Json      @default("[]")
+  sources         Json      @default("[]")
+  generatedByAI   Boolean   @default(false)
+  aiModelId       String?
+  aiGeneratedAt   DateTime?
+  researchedById  String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([companyId])
 }
 
 model MarketingStrategy {
-  id               String   @id @default(uuid())
-  companyId        String
-  company          Company  @relation(fields: [companyId], references: [id])
-  title            String
-  objectives       Json     @default("[]")
-  targetAudiences  Json     @default("[]")
-  positioning      String?
-  messaging        String?
-  channels         Json     @default("[]")
-  campaignPriorities Json   @default("[]")
-  contentThemes    Json     @default("[]")
-  kpis             Json     @default("[]")
+  id                   String   @id @default(uuid())
+  companyId            String
+  company              Company  @relation(fields: [companyId], references: [id])
+  title                String
+  objectives           Json     @default("[]")
+  targetAudiences      Json     @default("[]")
+  positioning          String?
+  messaging            String?
+  channels             Json     @default("[]")
+  campaignPriorities   Json     @default("[]")
+  contentThemes        Json     @default("[]")
+  kpis                 Json     @default("[]")
   budgetRecommendation Int? // advisory only, NOT spending authority
-  timing           String?
-  risks            Json     @default("[]")
-  assumptions      Json     @default("[]")
-  status           String   @default("DRAFT") // DRAFT, APPROVED, ARCHIVED
-  approvalId       String?
-  generatedByAI    Boolean  @default(false)
-  aiModelId        String?
-  createdById      String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  timing               String?
+  risks                Json     @default("[]")
+  assumptions          Json     @default("[]")
+  status               String   @default("DRAFT") // DRAFT, APPROVED, ARCHIVED
+  approvalId           String?
+  generatedByAI        Boolean  @default(false)
+  aiModelId            String?
+  createdById          String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  campaigns        MarketingCampaign[]
+  campaigns MarketingCampaign[]
 
   @@index([companyId])
 }
 
 model MarketingCampaign {
-  id                   String          @id @default(uuid())
+  id                   String             @id @default(uuid())
   companyId            String
-  company              Company         @relation(fields: [companyId], references: [id])
+  company              Company            @relation(fields: [companyId], references: [id])
   brandProfileId       String?
-  brandProfile         BrandProfile?   @relation(fields: [brandProfileId], references: [id])
+  brandProfile         BrandProfile?      @relation(fields: [brandProfileId], references: [id])
   strategyId           String?
   strategy             MarketingStrategy? @relation(fields: [strategyId], references: [id])
   name                 String
   objective            String?
   targetAudience       String?
-  status               CampaignStatus  @default(DRAFT)
-  channels             Json            @default("[]")
-  budgetRecommendation Int?            // advisory only
+  status               CampaignStatus     @default(DRAFT)
+  channels             Json               @default("[]")
+  budgetRecommendation Int? // advisory only
   startDate            DateTime?
   endDate              DateTime?
-  kpis                 Json            @default("[]")
+  kpis                 Json               @default("[]")
   ownerId              String
   approvalId           String?
-  generatedByAI        Boolean         @default(false)
+  generatedByAI        Boolean            @default(false)
   aiModelId            String?
   createdById          String
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
-  contents             MarketingContent[]
-  calendarEntries      ContentCalendarEntry[]
+  contents        MarketingContent[]
+  calendarEntries ContentCalendarEntry[]
 
   @@index([companyId, status])
 }
 
 model MarketingContent {
-  id                  String          @id @default(uuid())
-  companyId           String
-  company             Company         @relation(fields: [companyId], references: [id])
-  campaignId          String?
-  campaign            MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  brandProfileId      String?
-  brandProfile        BrandProfile?   @relation(fields: [brandProfileId], references: [id])
-  title               String
-  body                String
-  contentType         ContentType
-  channel             MarketingChannel?
-  status              ContentStatus   @default(DRAFT)
-  contentVersion      Int             @default(1)
-  approvalId          String?
-  approvedVersion     Int?            // version at time of approval
-  scheduledAt         DateTime?
-  publishedAt         DateTime?
-  publicationIdempotencyKey String?   @unique
-  reviewedById        String?
-  generatedByAI       Boolean         @default(false)
-  aiModelId           String?
-  aiGeneratedAt       DateTime?
-  brandGuidelineVersion Int?
-  creatorId           String
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  id                        String             @id @default(uuid())
+  companyId                 String
+  company                   Company            @relation(fields: [companyId], references: [id])
+  campaignId                String?
+  campaign                  MarketingCampaign? @relation(fields: [campaignId], references: [id])
+  brandProfileId            String?
+  brandProfile              BrandProfile?      @relation(fields: [brandProfileId], references: [id])
+  title                     String
+  body                      String
+  contentType               ContentType
+  channel                   MarketingChannel?
+  status                    ContentStatus      @default(DRAFT)
+  contentVersion            Int                @default(1)
+  approvalId                String?
+  approvedVersion           Int? // version at time of approval
+  scheduledAt               DateTime?
+  publishedAt               DateTime?
+  publicationIdempotencyKey String?            @unique
+  reviewedById              String?
+  generatedByAI             Boolean            @default(false)
+  aiModelId                 String?
+  aiGeneratedAt             DateTime?
+  brandGuidelineVersion     Int?
+  creatorId                 String
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
 
-  calendarEntries     ContentCalendarEntry[]
+  calendarEntries ContentCalendarEntry[]
 
   @@index([companyId, status])
   @@index([companyId, campaignId])
 }
 
 model ContentCalendarEntry {
-  id                String            @id @default(uuid())
-  companyId         String
-  company           Company           @relation(fields: [companyId], references: [id])
-  contentId         String
-  content           MarketingContent  @relation(fields: [contentId], references: [id])
-  campaignId        String?
-  campaign          MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  channel           MarketingChannel?
-  targetAudience    String?
-  scheduledAt       DateTime
-  status            String            @default("PLANNED") // PLANNED, APPROVED, PUBLISHED, CANCELLED
-  ownerId           String
-  notes             String?
-  createdById       String
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id             String             @id @default(uuid())
+  companyId      String
+  company        Company            @relation(fields: [companyId], references: [id])
+  contentId      String
+  content        MarketingContent   @relation(fields: [contentId], references: [id])
+  campaignId     String?
+  campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
+  channel        MarketingChannel?
+  targetAudience String?
+  scheduledAt    DateTime
+  status         String             @default("PLANNED") // PLANNED, APPROVED, PUBLISHED, CANCELLED
+  ownerId        String
+  notes          String?
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@index([companyId, scheduledAt])
 }
 
 model MarketingAnalytics {
-  id                    String              @id @default(uuid())
-  companyId             String
-  company               Company             @relation(fields: [companyId], references: [id])
-  contentId             String?
-  campaignId            String?
-  channel               MarketingChannel?
-  periodStart           DateTime
-  periodEnd             DateTime
-  impressions           Int?                // observed, from authoritative source
-  clicks                Int?                // observed
-  conversions           Int?                // observed
-  engagementRate        Float?              // observed
-  forecastImpressions   Int?                // AI forecast — NOT realized
-  forecastConversions   Int?                // AI forecast — NOT realized
-  isSimulated           Boolean             @default(false)
-  dataSource            String?
-  recordedById          String
-  recordedAt            DateTime            @default(now())
+  id                  String            @id @default(uuid())
+  companyId           String
+  company             Company           @relation(fields: [companyId], references: [id])
+  contentId           String?
+  campaignId          String?
+  channel             MarketingChannel?
+  periodStart         DateTime
+  periodEnd           DateTime
+  impressions         Int? // observed, from authoritative source
+  clicks              Int? // observed
+  conversions         Int? // observed
+  engagementRate      Float? // observed
+  forecastImpressions Int? // AI forecast — NOT realized
+  forecastConversions Int? // AI forecast — NOT realized
+  isSimulated         Boolean           @default(false)
+  dataSource          String?
+  recordedById        String
+  recordedAt          DateTime          @default(now())
 
   @@index([companyId, campaignId])
 }
 
 model MarketingAuditEvent {
-  id           String              @id @default(uuid())
-  companyId    String
-  company      Company             @relation(fields: [companyId], references: [id])
-  actorId      String
-  actorType    MarketingActorType  @default(HUMAN)
-  action       String
-  objectType   String
-  objectId     String
-  oldValue     Json?
-  newValue     Json?
-  outcome      String              @default("SUCCESS")
-  contentId    String?
-  campaignId   String?
+  id            String             @id @default(uuid())
+  companyId     String
+  company       Company            @relation(fields: [companyId], references: [id])
+  actorId       String
+  actorType     MarketingActorType @default(HUMAN)
+  action        String
+  objectType    String
+  objectId      String
+  oldValue      Json?
+  newValue      Json?
+  outcome       String             @default("SUCCESS")
+  contentId     String?
+  campaignId    String?
   correlationId String?
-  timestamp    DateTime            @default(now())
+  timestamp     DateTime           @default(now())
 
   @@index([companyId, objectType, objectId])
 }
 
 model MarketingAgentConfig {
-  id           String   @id @default(uuid())
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id])
-  employeeId   String   @unique
-  agentRole    String
-  permissions  Json     @default("[]")
-  grantedById  String
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  employeeId  String   @unique
+  agentRole   String
+  permissions Json     @default("[]")
+  grantedById String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([companyId])
 }
@@ -3728,8 +4133,8 @@ model FinancialAccount {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
-  journalLines           JournalLine[]
-  reconciliations        FinancialReconciliation[]
+  journalLines    JournalLine[]
+  reconciliations FinancialReconciliation[]
 
   @@unique([companyId, code])
   @@index([companyId, type])
@@ -4032,33 +4437,33 @@ enum WorkforcePlanStatus {
 
 // Phase 29 extension fields on Employee are added via WorkerProfile (to avoid altering the core Employee model)
 model WorkerProfile {
-  id             String              @id @default(uuid())
-  employeeId     String              @unique
-  employee       Employee            @relation("WorkerProfile", fields: [employeeId], references: [id])
-  workerType     WorkerType          @default(HUMAN)
-  managerId      String?
-  manager        WorkerProfile?      @relation("ReportsTo", fields: [managerId], references: [id])
-  directReports  WorkerProfile[]     @relation("ReportsTo")
-  autonomyLevel  AutonomyLevel       @default(MANUAL)
-  onboardingAt   DateTime?
-  offboardedAt   DateTime?
+  id               String          @id @default(uuid())
+  employeeId       String          @unique
+  employee         Employee        @relation("WorkerProfile", fields: [employeeId], references: [id])
+  workerType       WorkerType      @default(HUMAN)
+  managerId        String?
+  manager          WorkerProfile?  @relation("ReportsTo", fields: [managerId], references: [id])
+  directReports    WorkerProfile[] @relation("ReportsTo")
+  autonomyLevel    AutonomyLevel   @default(MANUAL)
+  onboardingAt     DateTime?
+  offboardedAt     DateTime?
   // AI-specific configuration
-  aiModel        String?
-  aiProvider     String?
-  aiSystemRole   String?
-  aiCapabilities Json                @default("[]")
-  aiTools        Json                @default("[]")
-  aiMemoryScope  String?             @default("COMPANY_SCOPED")
-  aiBudgetLimit  Int?
-  aiCostTracking Int                 @default(0)
+  aiModel          String?
+  aiProvider       String?
+  aiSystemRole     String?
+  aiCapabilities   Json            @default("[]")
+  aiTools          Json            @default("[]")
+  aiMemoryScope    String?         @default("COMPANY_SCOPED")
+  aiBudgetLimit    Int?
+  aiCostTracking   Int             @default(0)
   // Compensation band
-  compensationBand  String?
+  compensationBand String?
   // Workload
-  activeTaskCount Int                @default(0)
-  capacityLimit   Int                @default(10)
-  companyId      String
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  activeTaskCount  Int             @default(0)
+  capacityLimit    Int             @default(10)
+  companyId        String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   skillVerifications WorkerSkillVerification[]
   performanceReviews PerformanceReview[]
@@ -4082,7 +4487,7 @@ model WorkerSkillVerification {
   verifiedById     String?
   verifiedAt       DateTime?
   evidence         String?
-  evidenceSource   String?               // TASK_COMPLETION | ASSESSMENT | CERTIFICATION | MANAGER_VERIFICATION | TRAINING_COMPLETION
+  evidenceSource   String? // TASK_COMPLETION | ASSESSMENT | CERTIFICATION | MANAGER_VERIFICATION | TRAINING_COMPLETION
   acquiredAt       DateTime              @default(now())
   expiresAt        DateTime?
   notes            String?
@@ -4092,68 +4497,68 @@ model WorkerSkillVerification {
 }
 
 model HiringRequest {
-  id             String              @id @default(uuid())
-  companyId      String
-  company        Company             @relation("CompanyHiringRequests", fields: [companyId], references: [id])
-  departmentId   String?
-  workerType     WorkerType          @default(HUMAN)
-  title          String
-  description    String?
-  requiredSkills Json                @default("[]")
+  id               String              @id @default(uuid())
+  companyId        String
+  company          Company             @relation("CompanyHiringRequests", fields: [companyId], references: [id])
+  departmentId     String?
+  workerType       WorkerType          @default(HUMAN)
+  title            String
+  description      String?
+  requiredSkills   Json                @default("[]")
   compensationBand String?
-  requestedById  String
-  status         HiringRequestStatus @default(WORKFORCE_NEED)
-  approvalId     String?
-  approvedById   String?
-  approvedAt     DateTime?
-  candidateName  String?
-  candidateRef   String?
-  offerDetails   Json?
-  notes          String?
+  requestedById    String
+  status           HiringRequestStatus @default(WORKFORCE_NEED)
+  approvalId       String?
+  approvedById     String?
+  approvedAt       DateTime?
+  candidateName    String?
+  candidateRef     String?
+  offerDetails     Json?
+  notes            String?
   resultEmployeeId String?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([companyId, status])
   @@index([companyId, workerType])
 }
 
 model PerformanceReview {
-  id              String                @id @default(uuid())
-  companyId       String
-  reviewPeriod    String
-  workerProfileId String
-  workerProfile   WorkerProfile         @relation(fields: [workerProfileId], references: [id])
-  reviewerId      String
-  reviewer        WorkerProfile         @relation("ReviewedByEmployee", fields: [reviewerId], references: [id])
-  status          PerformanceReviewStatus @default(DRAFT)
-  goals           Json                  @default("[]")
-  outcomes        Json                  @default("[]")
-  strengths       String?
+  id                 String                  @id @default(uuid())
+  companyId          String
+  reviewPeriod       String
+  workerProfileId    String
+  workerProfile      WorkerProfile           @relation(fields: [workerProfileId], references: [id])
+  reviewerId         String
+  reviewer           WorkerProfile           @relation("ReviewedByEmployee", fields: [reviewerId], references: [id])
+  status             PerformanceReviewStatus @default(DRAFT)
+  goals              Json                    @default("[]")
+  outcomes           Json                    @default("[]")
+  strengths          String?
   areasOfImprovement String?
-  developmentAreas  String?
-  evidence        Json                  @default("[]")
-  rating          Int?                  // 1-5
-  recommendations String?
-  submittedAt     DateTime?
-  acknowledgedAt  DateTime?
-  closedAt        DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  developmentAreas   String?
+  evidence           Json                    @default("[]")
+  rating             Int? // 1-5
+  recommendations    String?
+  submittedAt        DateTime?
+  acknowledgedAt     DateTime?
+  closedAt           DateTime?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
 
   @@index([companyId, reviewPeriod])
   @@index([workerProfileId])
 }
 
 model BonusProposal {
-  id              String             @id @default(uuid())
+  id              String              @id @default(uuid())
   companyId       String
   targetProfileId String
-  targetProfile   WorkerProfile      @relation("BonusTarget", fields: [targetProfileId], references: [id])
+  targetProfile   WorkerProfile       @relation("BonusTarget", fields: [targetProfileId], references: [id])
   proposerId      String
-  proposer        WorkerProfile      @relation("BonusProposer", fields: [proposerId], references: [id])
+  proposer        WorkerProfile       @relation("BonusProposer", fields: [proposerId], references: [id])
   amount          Int
-  currency        String             @default("AC")
+  currency        String              @default("AC")
   reason          String
   period          String
   status          BonusProposalStatus @default(PROPOSED)
@@ -4162,83 +4567,83 @@ model BonusProposal {
   approvedAt      DateTime?
   awardedAt       DateTime?
   rejectedReason  String?
-  isAdvisory      Boolean            @default(true)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  isAdvisory      Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   @@index([companyId, status])
   @@index([targetProfileId])
 }
 
 model AIProvisioningRequest {
-  id              String               @id @default(uuid())
-  companyId       String
-  company         Company              @relation("CompanyAIProvisioning", fields: [companyId], references: [id])
-  requestedById   String
-  workerType      WorkerType           @default(AI_AGENT)
-  proposedName    String
-  proposedRole    String
-  proposedDept    String?
-  aiModel         String
-  aiProvider      String
-  aiSystemRole    String
-  aiCapabilities  Json                 @default("[]")
-  aiTools         Json                 @default("[]")
-  autonomyLevel   AutonomyLevel        @default(MANUAL)
-  budgetLimit     Int?
-  managerId       String?
-  status          AIProvisioningStatus @default(PROPOSAL)
-  approvalId      String?
-  approvedById    String?
-  approvedAt      DateTime?
+  id               String               @id @default(uuid())
+  companyId        String
+  company          Company              @relation("CompanyAIProvisioning", fields: [companyId], references: [id])
+  requestedById    String
+  workerType       WorkerType           @default(AI_AGENT)
+  proposedName     String
+  proposedRole     String
+  proposedDept     String?
+  aiModel          String
+  aiProvider       String
+  aiSystemRole     String
+  aiCapabilities   Json                 @default("[]")
+  aiTools          Json                 @default("[]")
+  autonomyLevel    AutonomyLevel        @default(MANUAL)
+  budgetLimit      Int?
+  managerId        String?
+  status           AIProvisioningStatus @default(PROPOSAL)
+  approvalId       String?
+  approvedById     String?
+  approvedAt       DateTime?
   resultEmployeeId String?
-  rejectedReason  String?
-  idempotencyKey  String?              @unique
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  rejectedReason   String?
+  idempotencyKey   String?              @unique
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   @@index([companyId, status])
 }
 
 model WorkforcePlan {
-  id              String              @id @default(uuid())
-  companyId       String
-  company         Company             @relation("CompanyWorkforcePlans", fields: [companyId], references: [id])
-  title           String
-  period          String
-  requestedById   String
-  status          WorkforcePlanStatus @default(DRAFT)
-  plannedHeadcount Int               @default(0)
-  currentHeadcount Int               @default(0)
-  aiWorkerCount   Int                @default(0)
-  humanWorkerCount Int               @default(0)
-  projectedCostAC Int                @default(0)
-  skillGaps       Json               @default("[]")
-  hiringRecommendations Json         @default("[]")
-  departmentBreakdown Json           @default("[]")
-  isAdvisory      Boolean            @default(true)
-  approvedById    String?
-  approvedAt      DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id                    String              @id @default(uuid())
+  companyId             String
+  company               Company             @relation("CompanyWorkforcePlans", fields: [companyId], references: [id])
+  title                 String
+  period                String
+  requestedById         String
+  status                WorkforcePlanStatus @default(DRAFT)
+  plannedHeadcount      Int                 @default(0)
+  currentHeadcount      Int                 @default(0)
+  aiWorkerCount         Int                 @default(0)
+  humanWorkerCount      Int                 @default(0)
+  projectedCostAC       Int                 @default(0)
+  skillGaps             Json                @default("[]")
+  hiringRecommendations Json                @default("[]")
+  departmentBreakdown   Json                @default("[]")
+  isAdvisory            Boolean             @default(true)
+  approvedById          String?
+  approvedAt            DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
 
   @@index([companyId, status])
 }
 
 model WorkforceAuditEvent {
-  id          String   @id @default(uuid())
-  companyId   String
-  company     Company  @relation("CompanyWorkforceAudit", fields: [companyId], references: [id])
-  actorId     String
-  actorType   String   @default("HUMAN")
-  action      String
-  objectType  String
-  objectId    String
-  oldValue    Json?
-  newValue    Json?
-  outcome     String   @default("SUCCESS")
-  reference   String?
-  timestamp   DateTime @default(now())
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation("CompanyWorkforceAudit", fields: [companyId], references: [id])
+  actorId    String
+  actorType  String   @default("HUMAN")
+  action     String
+  objectType String
+  objectId   String
+  oldValue   Json?
+  newValue   Json?
+  outcome    String   @default("SUCCESS")
+  reference  String?
+  timestamp  DateTime @default(now())
 
   @@index([companyId, objectType, objectId])
   @@index([companyId, timestamp])
@@ -4401,138 +4806,138 @@ enum OrgMemoryType {
 }
 
 model CompanyObjective {
-  id                 String               @id @default(uuid())
-  companyId          String
-  company            Company              @relation(fields: [companyId], references: [id])
-  title              String
-  description        String?
-  ownerId            String
-  owner              Employee             @relation("OwnedObjectives", fields: [ownerId], references: [id])
-  departmentId       String?
-  parentObjectiveId  String?
-  parentObjective    CompanyObjective?    @relation("ObjectiveHierarchy", fields: [parentObjectiveId], references: [id])
-  childObjectives    CompanyObjective[]   @relation("ObjectiveHierarchy")
-  priority           ObjectivePriority    @default(NORMAL)
-  status             ObjectiveStatus      @default(PROPOSED)
-  startDate          DateTime?
-  targetDate         DateTime?
-  metrics            Json                 @default("[]")
-  progress           Int                  @default(0)
-  evidenceNote       String?
-  approvedById       String?
-  approvedAt         DateTime?
-  kpis               CompanyKPI[]
-  initiatives        StrategicInitiative[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  id                String                @id @default(uuid())
+  companyId         String
+  company           Company               @relation(fields: [companyId], references: [id])
+  title             String
+  description       String?
+  ownerId           String
+  owner             Employee              @relation("OwnedObjectives", fields: [ownerId], references: [id])
+  departmentId      String?
+  parentObjectiveId String?
+  parentObjective   CompanyObjective?     @relation("ObjectiveHierarchy", fields: [parentObjectiveId], references: [id])
+  childObjectives   CompanyObjective[]    @relation("ObjectiveHierarchy")
+  priority          ObjectivePriority     @default(NORMAL)
+  status            ObjectiveStatus       @default(PROPOSED)
+  startDate         DateTime?
+  targetDate        DateTime?
+  metrics           Json                  @default("[]")
+  progress          Int                   @default(0)
+  evidenceNote      String?
+  approvedById      String?
+  approvedAt        DateTime?
+  kpis              CompanyKPI[]
+  initiatives       StrategicInitiative[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
 
   @@index([companyId, status])
 }
 
 model CompanyKPI {
-  id            String            @id @default(uuid())
-  companyId     String
-  company       Company           @relation(fields: [companyId], references: [id])
-  name          String
-  description   String?
-  ownerId       String
-  owner         Employee          @relation("OwnedKPIs", fields: [ownerId], references: [id])
-  objectiveId   String?
-  objective     CompanyObjective? @relation(fields: [objectiveId], references: [id])
-  period        KpiPeriod         @default(MONTHLY)
-  baseline      Int               @default(0)
-  target        Int               @default(0)
-  currentValue  Int               @default(0)
-  unit          String?
-  sourceSystem  String?
-  sourceRef     String?
-  trend         KpiTrend          @default(STABLE)
-  status        KpiStatus         @default(ON_TRACK)
-  isAdvisory    Boolean           @default(true)
-  generatedBy   String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id           String            @id @default(uuid())
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id])
+  name         String
+  description  String?
+  ownerId      String
+  owner        Employee          @relation("OwnedKPIs", fields: [ownerId], references: [id])
+  objectiveId  String?
+  objective    CompanyObjective? @relation(fields: [objectiveId], references: [id])
+  period       KpiPeriod         @default(MONTHLY)
+  baseline     Int               @default(0)
+  target       Int               @default(0)
+  currentValue Int               @default(0)
+  unit         String?
+  sourceSystem String?
+  sourceRef    String?
+  trend        KpiTrend          @default(STABLE)
+  status       KpiStatus         @default(ON_TRACK)
+  isAdvisory   Boolean           @default(true)
+  generatedBy  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@index([companyId])
 }
 
 model CompanyHealthSnapshot {
-  id                  String              @id @default(uuid())
-  companyId           String
-  company             Company             @relation(fields: [companyId], references: [id])
-  status              CompanyHealthStatus @default(WATCH)
-  financialScore      Int                 @default(50)
-  salesScore          Int                 @default(50)
-  marketingScore      Int                 @default(50)
-  workforceScore      Int                 @default(50)
-  operationsScore     Int                 @default(50)
-  customerScore       Int                 @default(50)
-  evidence            Json                @default("{}")
-  reasons             Json                @default("[]")
-  generatedBy         String
-  calculationVersion  String              @default("1.0")
-  snapshotAt          DateTime            @default(now())
-  cycleId             String?
-  createdAt           DateTime            @default(now())
+  id                 String              @id @default(uuid())
+  companyId          String
+  company            Company             @relation(fields: [companyId], references: [id])
+  status             CompanyHealthStatus @default(WATCH)
+  financialScore     Int                 @default(50)
+  salesScore         Int                 @default(50)
+  marketingScore     Int                 @default(50)
+  workforceScore     Int                 @default(50)
+  operationsScore    Int                 @default(50)
+  customerScore      Int                 @default(50)
+  evidence           Json                @default("{}")
+  reasons            Json                @default("[]")
+  generatedBy        String
+  calculationVersion String              @default("1.0")
+  snapshotAt         DateTime            @default(now())
+  cycleId            String?
+  createdAt          DateTime            @default(now())
 
   @@index([companyId, snapshotAt(sort: Desc)])
 }
 
 model ManagementCycle {
-  id                  String                @id @default(uuid())
-  companyId           String
-  company             Company               @relation(fields: [companyId], references: [id])
-  cycleType           ManagementCycleType
-  status              ManagementCycleStatus @default(RUNNING)
-  triggeredBy         String
-  idempotencyKey      String
-  healthStatus        CompanyHealthStatus?
-  anomaliesDetected   Json                  @default("[]")
-  risksIdentified     Int                   @default(0)
-  opportunitiesFound  Int                   @default(0)
-  decisionsGenerated  Int                   @default(0)
-  escalationsCreated  Int                   @default(0)
-  summary             Json                  @default("{}")
-  startedAt           DateTime              @default(now())
-  completedAt         DateTime?
-  error               String?
-  createdAt           DateTime              @default(now())
+  id                 String                @id @default(uuid())
+  companyId          String
+  company            Company               @relation(fields: [companyId], references: [id])
+  cycleType          ManagementCycleType
+  status             ManagementCycleStatus @default(RUNNING)
+  triggeredBy        String
+  idempotencyKey     String
+  healthStatus       CompanyHealthStatus?
+  anomaliesDetected  Json                  @default("[]")
+  risksIdentified    Int                   @default(0)
+  opportunitiesFound Int                   @default(0)
+  decisionsGenerated Int                   @default(0)
+  escalationsCreated Int                   @default(0)
+  summary            Json                  @default("{}")
+  startedAt          DateTime              @default(now())
+  completedAt        DateTime?
+  error              String?
+  createdAt          DateTime              @default(now())
 
   @@unique([companyId, idempotencyKey])
   @@index([companyId, cycleType])
 }
 
 model ExecutiveDecision {
-  id              String                  @id @default(uuid())
-  companyId       String
-  company         Company                 @relation(fields: [companyId], references: [id])
-  proposerId      String
-  proposer        Employee                @relation("ProposedExecDecisions", fields: [proposerId], references: [id])
-  decisionType    ExecutiveDecisionType
-  subject         String
-  description     String?
-  artifactType    String                  @default("RECOMMENDATION")
-  evidence        Json                    @default("[]")
-  analysis        Json                    @default("{}")
-  recommendation  Json                    @default("{}")
-  alternatives    Json                    @default("[]")
-  expectedImpact  Json                    @default("{}")
-  riskLevel       RiskLevel               @default(LOW)
-  priority        DecisionPriority        @default(NORMAL)
-  requiredApproval Boolean               @default(false)
-  approvalId      String?
-  status          ExecutiveDecisionStatus @default(PROPOSED)
-  decisionMakerId String?
-  executionState  Json                    @default("{}")
-  result          Json                    @default("{}")
-  cycleId         String?
-  proposedAt      DateTime                @default(now())
-  approvedAt      DateTime?
-  executedAt      DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  initiatives     StrategicInitiative[]
+  id               String                  @id @default(uuid())
+  companyId        String
+  company          Company                 @relation(fields: [companyId], references: [id])
+  proposerId       String
+  proposer         Employee                @relation("ProposedExecDecisions", fields: [proposerId], references: [id])
+  decisionType     ExecutiveDecisionType
+  subject          String
+  description      String?
+  artifactType     String                  @default("RECOMMENDATION")
+  evidence         Json                    @default("[]")
+  analysis         Json                    @default("{}")
+  recommendation   Json                    @default("{}")
+  alternatives     Json                    @default("[]")
+  expectedImpact   Json                    @default("{}")
+  riskLevel        RiskLevel               @default(LOW)
+  priority         DecisionPriority        @default(NORMAL)
+  requiredApproval Boolean                 @default(false)
+  approvalId       String?
+  status           ExecutiveDecisionStatus @default(PROPOSED)
+  decisionMakerId  String?
+  executionState   Json                    @default("{}")
+  result           Json                    @default("{}")
+  cycleId          String?
+  proposedAt       DateTime                @default(now())
+  approvedAt       DateTime?
+  executedAt       DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  initiatives      StrategicInitiative[]
 
   @@index([companyId, status])
   @@index([companyId, priority])
@@ -4568,23 +4973,23 @@ model CompanyRisk {
 }
 
 model CompanyOpportunity {
-  id                String            @id @default(uuid())
+  id                String                   @id @default(uuid())
   companyId         String
-  company           Company           @relation(fields: [companyId], references: [id])
+  company           Company                  @relation(fields: [companyId], references: [id])
   title             String
   description       String?
   opportunityType   OpportunityType
-  evidence          Json              @default("[]")
+  evidence          Json                     @default("[]")
   ownerId           String
-  owner             Employee          @relation("OwnedOpportunities30", fields: [ownerId], references: [id])
+  owner             Employee                 @relation("OwnedOpportunities30", fields: [ownerId], references: [id])
   status            CompanyOpportunityStatus @default(IDENTIFIED)
-  expectedImpact    Json              @default("{}")
+  expectedImpact    Json                     @default("{}")
   relatedDecisionId String?
   cycleId           String?
-  isAdvisory        Boolean           @default(true)
-  discoveredAt      DateTime          @default(now())
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  isAdvisory        Boolean                  @default(true)
+  discoveredAt      DateTime                 @default(now())
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
 
   @@index([companyId, status])
 }
@@ -4742,15 +5147,15 @@ enum StrategicExperimentStatus {
 }
 
 model StrategicTheme {
-  id          String               @id @default(uuid())
+  id          String                @id @default(uuid())
   companyId   String
-  company     Company              @relation(fields: [companyId], references: [id])
+  company     Company               @relation(fields: [companyId], references: [id])
   name        String
   description String?
-  status      StrategicThemeStatus @default(ACTIVE)
+  status      StrategicThemeStatus  @default(ACTIVE)
   createdBy   String
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
   initiatives StrategicInitiative[]
 
   @@index([companyId, status])
@@ -4874,8 +5279,8 @@ model StrategicForecast {
   outcomeNote  String?
   createdAt    DateTime             @default(now())
 
-  @@index([companyId, forecastType])
   @@unique([companyId, forecastType, version])
+  @@index([companyId, forecastType])
 }
 
 model StrategyReviewCycle {
@@ -5003,25 +5408,25 @@ enum ResRecommendationStatus {
 
 // Research Lab Project — general research project with full governance lifecycle
 model LabProject {
-  id              String           @id @default(uuid())
-  companyId       String
-  company         Company          @relation("LabProjectCompany", fields: [companyId], references: [id])
-  title           String
-  description     String
-  objective       String
-  domain          String           @default("GENERAL")
-  ownerId         String
-  owner           Employee         @relation("LabProjectOwner", fields: [ownerId], references: [id])
-  status          LabProjectStatus @default(DRAFT)
-  isAdvisory      Boolean          @default(true)
-  resourceBudget  Int              @default(0)
-  approvedById    String?
-  approvedAt      DateTime?
-  startedAt       DateTime?
-  completedAt     DateTime?
-  metadata        Json             @default("{}")
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id             String           @id @default(uuid())
+  companyId      String
+  company        Company          @relation("LabProjectCompany", fields: [companyId], references: [id])
+  title          String
+  description    String
+  objective      String
+  domain         String           @default("GENERAL")
+  ownerId        String
+  owner          Employee         @relation("LabProjectOwner", fields: [ownerId], references: [id])
+  status         LabProjectStatus @default(DRAFT)
+  isAdvisory     Boolean          @default(true)
+  resourceBudget Int              @default(0)
+  approvedById   String?
+  approvedAt     DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  metadata       Json             @default("{}")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   questions       ResQuestion[]
   hypotheses      ResHypothesis[]
@@ -5212,26 +5617,26 @@ model LabEvaluation {
 
 // Research Finding
 model LabFinding {
-  id                String           @id @default(uuid())
-  companyId         String
-  company           Company          @relation("LabFindingCompany", fields: [companyId], references: [id])
-  projectId         String
-  project           LabProject       @relation(fields: [projectId], references: [id])
-  hypothesisId      String?
-  hypothesis        ResHypothesis?   @relation(fields: [hypothesisId], references: [id])
-  statement         String
-  supportingEvidence Json            @default("[]")
-  confidence        Int              @default(50)
-  limitations       Json             @default("[]")
-  counterEvidence   Json             @default("[]")
-  authorId          String
-  author            Employee         @relation("LabFindingAuthor", fields: [authorId], references: [id])
-  evaluatorId       String?
-  status            ResFindingStatus @default(DRAFT)
-  isAdvisory        Boolean          @default(true)
-  reviewedAt        DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id                 String           @id @default(uuid())
+  companyId          String
+  company            Company          @relation("LabFindingCompany", fields: [companyId], references: [id])
+  projectId          String
+  project            LabProject       @relation(fields: [projectId], references: [id])
+  hypothesisId       String?
+  hypothesis         ResHypothesis?   @relation(fields: [hypothesisId], references: [id])
+  statement          String
+  supportingEvidence Json             @default("[]")
+  confidence         Int              @default(50)
+  limitations        Json             @default("[]")
+  counterEvidence    Json             @default("[]")
+  authorId           String
+  author             Employee         @relation("LabFindingAuthor", fields: [authorId], references: [id])
+  evaluatorId        String?
+  status             ResFindingStatus @default(DRAFT)
+  isAdvisory         Boolean          @default(true)
+  reviewedAt         DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   @@index([companyId, status])
   @@index([companyId, projectId])
@@ -5398,27 +5803,27 @@ model MpProvider {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  company      Company          @relation("MpProviderCompany", fields: [companyId], references: [id])
+  company      Company            @relation("MpProviderCompany", fields: [companyId], references: [id])
   models       MpModel[]
   health       MpProviderHealth[]
-  killSwitches MpKillSwitch[]   @relation("KillSwitchProvider")
+  killSwitches MpKillSwitch[]     @relation("KillSwitchProvider")
 
   @@unique([companyId, providerType, displayName])
 }
 
 model MpProviderHealth {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   companyId     String
   providerId    String
-  status        String   @default("UNKNOWN")
+  status        String    @default("UNKNOWN")
   p50LatencyMs  Int?
   p95LatencyMs  Int?
-  errorRateBps  Int      @default(0)
-  successCount  Int      @default(0)
-  failureCount  Int      @default(0)
+  errorRateBps  Int       @default(0)
+  successCount  Int       @default(0)
+  failureCount  Int       @default(0)
   lastCheckedAt DateTime?
   notes         String?
-  recordedAt    DateTime @default(now())
+  recordedAt    DateTime  @default(now())
 
   company  Company    @relation("MpProvHealthCompany", fields: [companyId], references: [id])
   provider MpProvider @relation(fields: [providerId], references: [id])
@@ -5448,15 +5853,15 @@ model MpModel {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
-  company      Company             @relation("MpModelCompany", fields: [companyId], references: [id])
-  provider     MpProvider          @relation(fields: [providerId], references: [id])
+  company      Company                @relation("MpModelCompany", fields: [companyId], references: [id])
+  provider     MpProvider             @relation(fields: [providerId], references: [id])
   capabilities MpModelCapability[]
   versions     MpModelVersion[]
   health       MpModelHealth[]
   inferences   MpInferenceExecution[]
-  fallbackFrom MpFallbackChain[]   @relation("FallbackFrom")
-  fallbackTo   MpFallbackChain[]   @relation("FallbackTo")
-  killSwitches MpKillSwitch[]      @relation("KillSwitchModel")
+  fallbackFrom MpFallbackChain[]      @relation("FallbackFrom")
+  fallbackTo   MpFallbackChain[]      @relation("FallbackTo")
+  killSwitches MpKillSwitch[]         @relation("KillSwitchModel")
 
   @@unique([companyId, providerId, modelIdentifier])
 }
@@ -5635,20 +6040,20 @@ model MpPromptTemplate {
 }
 
 model MpPromptTemplateVersion {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   companyId    String
   templateId   String
   version      Int
   systemPrompt String?
   userTemplate String
-  variables    Json     @default("[]")
-  modelHints   Json     @default("{}")
-  isActive     Boolean  @default(false)
-  isAdvisory   Boolean  @default(true)
+  variables    Json      @default("[]")
+  modelHints   Json      @default("{}")
+  isActive     Boolean   @default(false)
+  isAdvisory   Boolean   @default(true)
   createdBy    String
   approvedBy   String?
   approvedAt   DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
   company  Company          @relation("MpPromptVersionCompany", fields: [companyId], references: [id])
   template MpPromptTemplate @relation(fields: [templateId], references: [id])
@@ -5744,15 +6149,15 @@ enum PfQAStatus {
 }
 
 model PfProduct {
-  id                    String               @id @default(uuid())
+  id                    String                 @id @default(uuid())
   companyId             String
-  company               Company              @relation("PfProductCompany", fields: [companyId], references: [id])
+  company               Company                @relation("PfProductCompany", fields: [companyId], references: [id])
   name                  String
   description           String?
   problemStatement      String?
   targetCustomer        String?
   category              String?
-  lifecycle             PfProductLifecycle   @default(IDEA)
+  lifecycle             PfProductLifecycle     @default(IDEA)
   ownerId               String
   registeredBy          String
   approvedBy            String?
@@ -5762,10 +6167,10 @@ model PfProduct {
   researchProjectId     String?
   labProjectId          String?
   currentVersion        String?
-  isAdvisory            Boolean              @default(true)
-  isArchived            Boolean              @default(false)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  isAdvisory            Boolean                @default(true)
+  isArchived            Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   versions              PfProductVersion[]
   ideas                 PfProductIdea[]
   features              PfProductFeature[]
@@ -5804,11 +6209,11 @@ model PfProductVersion {
 }
 
 model PfProductIdea {
-  id                 String        @id @default(uuid())
+  id                 String       @id @default(uuid())
   companyId          String
-  company            Company       @relation("PfIdeaCompany", fields: [companyId], references: [id])
+  company            Company      @relation("PfIdeaCompany", fields: [companyId], references: [id])
   productId          String?
-  product            PfProduct?    @relation(fields: [productId], references: [id])
+  product            PfProduct?   @relation(fields: [productId], references: [id])
   title              String
   problemStatement   String
   proposedSolution   String?
@@ -5820,11 +6225,11 @@ model PfProductIdea {
   risks              String?
   assumptions        String?
   originatingSource  String?
-  status             PfIdeaStatus  @default(DRAFT)
+  status             PfIdeaStatus @default(DRAFT)
   createdBy          String
-  isAdvisory         Boolean       @default(true)
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  isAdvisory         Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   @@index([companyId, status])
 }
@@ -5892,23 +6297,23 @@ model PfSecurityReview {
 }
 
 model PfQARecord {
-  id                  String     @id @default(uuid())
-  companyId           String
-  productId           String
-  product             PfProduct  @relation(fields: [productId], references: [id])
-  versionRef          String?
-  unitTestStatus      PfQAStatus @default(NOT_STARTED)
-  integrationStatus   PfQAStatus @default(NOT_STARTED)
-  acceptanceStatus    PfQAStatus @default(NOT_STARTED)
-  regressionStatus    PfQAStatus @default(NOT_STARTED)
-  performanceStatus   PfQAStatus @default(NOT_STARTED)
-  securityStatus      PfQAStatus @default(NOT_STARTED)
-  overallReady        Boolean    @default(false)
-  evidenceNotes       String?
-  recordedBy          String
-  isAdvisory          Boolean    @default(true)
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  id                String     @id @default(uuid())
+  companyId         String
+  productId         String
+  product           PfProduct  @relation(fields: [productId], references: [id])
+  versionRef        String?
+  unitTestStatus    PfQAStatus @default(NOT_STARTED)
+  integrationStatus PfQAStatus @default(NOT_STARTED)
+  acceptanceStatus  PfQAStatus @default(NOT_STARTED)
+  regressionStatus  PfQAStatus @default(NOT_STARTED)
+  performanceStatus PfQAStatus @default(NOT_STARTED)
+  securityStatus    PfQAStatus @default(NOT_STARTED)
+  overallReady      Boolean    @default(false)
+  evidenceNotes     String?
+  recordedBy        String
+  isAdvisory        Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   @@index([companyId, productId])
 }
@@ -6063,18 +6468,18 @@ enum BuRiskSeverity {
 }
 
 model BusinessUnit {
-  id               String        @id @default(uuid())
+  id               String         @id @default(uuid())
   companyId        String
-  company          Company       @relation("BuCompany", fields: [companyId], references: [id])
+  company          Company        @relation("BuCompany", fields: [companyId], references: [id])
   name             String
   code             String
   description      String?
   charter          String?
-  status           BuStatus      @default(DRAFT)
-  lifecycle        BuLifecycle   @default(CHARTER)
+  status           BuStatus       @default(DRAFT)
+  lifecycle        BuLifecycle    @default(CHARTER)
   leaderId         String?
   parentBuId       String?
-  parentBu         BusinessUnit? @relation("BuParent", fields: [parentBuId], references: [id])
+  parentBu         BusinessUnit?  @relation("BuParent", fields: [parentBuId], references: [id])
   childBus         BusinessUnit[] @relation("BuParent")
   strategicThemeId String?
   registeredBy     String
@@ -6082,17 +6487,17 @@ model BusinessUnit {
   approvedAt       DateTime?
   retiredAt        DateTime?
   retiredBy        String?
-  isAdvisory       Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  isAdvisory       Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  objectives          BuObjective[]
-  kpis                BuKpi[]
-  budgets             BuBudget[]
-  risks               BuRisk[]
-  capitalRequests     BuCapitalRequest[]
-  performanceReviews  BuPerformanceReview[]
-  auditEvents         BuAuditEvent[]
+  objectives         BuObjective[]
+  kpis               BuKpi[]
+  budgets            BuBudget[]
+  risks              BuRisk[]
+  capitalRequests    BuCapitalRequest[]
+  performanceReviews BuPerformanceReview[]
+  auditEvents        BuAuditEvent[]
 
   @@unique([companyId, code])
   @@index([companyId, status])
@@ -6117,7 +6522,7 @@ model BuObjective {
 }
 
 model BuKpi {
-  id           String      @id @default(uuid())
+  id           String       @id @default(uuid())
   companyId    String
   buId         String
   bu           BusinessUnit @relation(fields: [buId], references: [id])
@@ -6206,18 +6611,18 @@ model BuCapitalRequest {
 }
 
 model BuPerformanceReview {
-  id           String       @id @default(uuid())
-  companyId    String
-  buId         String
-  bu           BusinessUnit @relation(fields: [buId], references: [id])
-  period       String
-  summary      String?
-  kpiScorePct  Int?
-  reviewedBy   String
-  approvedBy   String?
-  isAdvisory   Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id          String       @id @default(uuid())
+  companyId   String
+  buId        String
+  bu          BusinessUnit @relation(fields: [buId], references: [id])
+  period      String
+  summary     String?
+  kpiScorePct Int?
+  reviewedBy  String
+  approvedBy  String?
+  isAdvisory  Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([companyId, buId, period])
   @@index([companyId, buId])
@@ -6288,25 +6693,25 @@ enum CaRiskLevel {
 }
 
 model CaCapitalPool {
-  id            String   @id @default(uuid())
-  companyId     String
-  company       Company  @relation("CaCompany", fields: [companyId], references: [id])
-  name          String
-  description   String?
-  totalMc       Int
-  availableMc   Int
-  committedMc   Int      @default(0)
-  currency      String   @default("USD")
-  fiscalYear    Int
-  isAdvisory    Boolean  @default(true)
-  createdBy     String
-  approvedBy    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation("CaCompany", fields: [companyId], references: [id])
+  name        String
+  description String?
+  totalMc     Int
+  availableMc Int
+  committedMc Int      @default(0)
+  currency    String   @default("USD")
+  fiscalYear  Int
+  isAdvisory  Boolean  @default(true)
+  createdBy   String
+  approvedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  proposals     CaAllocationProposal[]
-  constraints   CaConstraint[]
-  auditEvents   CaAuditEvent[]
+  proposals   CaAllocationProposal[]
+  constraints CaConstraint[]
+  auditEvents CaAuditEvent[]
 
   @@unique([companyId, name, fiscalYear])
   @@index([companyId, fiscalYear])
@@ -6340,46 +6745,46 @@ model CaAllocationProposal {
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 
-  scenarios    CaScenario[]
-  allocations  CaAuthorizedAllocation[]
+  scenarios   CaScenario[]
+  allocations CaAuthorizedAllocation[]
 
   @@index([companyId, poolId, status])
 }
 
 model CaScenario {
-  id                  String               @id @default(uuid())
-  companyId           String
-  proposalId          String
-  proposal            CaAllocationProposal @relation(fields: [proposalId], references: [id])
-  scenarioType        CaScenarioType       @default(BASE)
-  label               String?
-  projectedReturnMc   Int?
-  projectedRoiPct     Int?
-  timeHorizonMonths   Int?
-  assumptions         String?
-  isAdvisory          Boolean              @default(true)
-  createdBy           String
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  id                String               @id @default(uuid())
+  companyId         String
+  proposalId        String
+  proposal          CaAllocationProposal @relation(fields: [proposalId], references: [id])
+  scenarioType      CaScenarioType       @default(BASE)
+  label             String?
+  projectedReturnMc Int?
+  projectedRoiPct   Int?
+  timeHorizonMonths Int?
+  assumptions       String?
+  isAdvisory        Boolean              @default(true)
+  createdBy         String
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 
   @@index([companyId, proposalId])
 }
 
 model CaConstraint {
-  id                 String        @id @default(uuid())
-  companyId          String
-  poolId             String
-  pool               CaCapitalPool @relation(fields: [poolId], references: [id])
-  name               String
-  description        String?
-  maxSingleAllocMc   Int?
-  minLiquidityMc     Int?
-  maxCategoryPct     Int?
-  maxBuPct           Int?
-  isAdvisory         Boolean       @default(true)
-  createdBy          String
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  companyId        String
+  poolId           String
+  pool             CaCapitalPool @relation(fields: [poolId], references: [id])
+  name             String
+  description      String?
+  maxSingleAllocMc Int?
+  minLiquidityMc   Int?
+  maxCategoryPct   Int?
+  maxBuPct         Int?
+  isAdvisory       Boolean       @default(true)
+  createdBy        String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([companyId, poolId])
 }
@@ -6507,20 +6912,20 @@ model GoRegion {
 }
 
 model GoCountry {
-  id          String    @id @default(uuid())
-  companyId   String
-  regionId    String
-  region      GoRegion  @relation(fields: [regionId], references: [id])
-  name        String
-  isoCode     String
-  currency    String
-  timeZone    String?
-  isAdvisory  Boolean   @default(false)
-  createdBy   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  companyId  String
+  regionId   String
+  region     GoRegion @relation(fields: [regionId], references: [id])
+  name       String
+  isoCode    String
+  currency   String
+  timeZone   String?
+  isAdvisory Boolean  @default(false)
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  entities    GoOperatingEntity[]
+  entities GoOperatingEntity[]
 
   @@unique([companyId, regionId, isoCode])
   @@index([companyId, regionId])
@@ -6621,20 +7026,20 @@ model GoRegionalBudget {
 }
 
 model GoComplianceRecord {
-  id         String              @id @default(uuid())
+  id         String             @id @default(uuid())
   companyId  String
   entityId   String
-  entity     GoOperatingEntity   @relation(fields: [entityId], references: [id])
+  entity     GoOperatingEntity  @relation(fields: [entityId], references: [id])
   framework  String
-  status     GoComplianceStatus  @default(UNDER_REVIEW)
+  status     GoComplianceStatus @default(UNDER_REVIEW)
   notes      String?
   dueDate    DateTime?
   reviewedBy String?
   resolvedBy String?
-  isAdvisory Boolean             @default(true)
+  isAdvisory Boolean            @default(true)
   createdBy  String
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
 
   @@index([companyId, entityId])
 }
@@ -6728,8 +7133,8 @@ model FiDataset {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  trainingJobs    FiTrainingJob[]
-  auditEvents     FiAuditEvent[]
+  trainingJobs FiTrainingJob[]
+  auditEvents  FiAuditEvent[]
 
   @@unique([companyId, name, version])
   @@index([companyId, status])
@@ -6758,8 +7163,8 @@ model FiTrainingJob {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
-  checkpoints     FiCheckpoint[]
-  modelVersions   FiModelVersion[]
+  checkpoints   FiCheckpoint[]
+  modelVersions FiModelVersion[]
 
   @@index([companyId, status])
 }
@@ -6782,63 +7187,63 @@ model FiCheckpoint {
 }
 
 model FiModelVersion {
-  id              String         @id @default(uuid())
+  id              String           @id @default(uuid())
   companyId       String
   jobId           String?
-  job             FiTrainingJob? @relation(fields: [jobId], references: [id])
+  job             FiTrainingJob?   @relation(fields: [jobId], references: [id])
   family          String
   version         String
-  status          FiModelStatus  @default(EXPERIMENTAL)
+  status          FiModelStatus    @default(EXPERIMENTAL)
   description     String?
   artifactRef     String?
   parentVersionId String?
   parentVersion   FiModelVersion?  @relation("FiVersionLineage", fields: [parentVersionId], references: [id])
   childVersions   FiModelVersion[] @relation("FiVersionLineage")
-  isAdvisory      Boolean        @default(true)
+  isAdvisory      Boolean          @default(true)
   proposedBy      String
   approvedBy      String?
   approvedAt      DateTime?
   retiredBy       String?
   retiredAt       DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  evaluations     FiEvaluation[]
+  evaluations FiEvaluation[]
 
   @@unique([companyId, family, version])
   @@index([companyId, status])
 }
 
 model FiEvaluation {
-  id              String         @id @default(uuid())
-  companyId       String
-  modelVersionId  String
-  modelVersion    FiModelVersion @relation(fields: [modelVersionId], references: [id])
-  benchmarkName   String
-  result          FiEvalResult   @default(INCONCLUSIVE)
-  score           String?
-  notes           String?
-  isAdvisory      Boolean        @default(true)
-  evaluatedBy     String
-  idempotencyKey  String         @unique
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id             String         @id @default(uuid())
+  companyId      String
+  modelVersionId String
+  modelVersion   FiModelVersion @relation(fields: [modelVersionId], references: [id])
+  benchmarkName  String
+  result         FiEvalResult   @default(INCONCLUSIVE)
+  score          String?
+  notes          String?
+  isAdvisory     Boolean        @default(true)
+  evaluatedBy    String
+  idempotencyKey String         @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([companyId, modelVersionId])
 }
 
 model FiAuditEvent {
-  id          String     @id @default(uuid())
-  companyId   String
-  datasetId   String?
-  dataset     FiDataset? @relation(fields: [datasetId], references: [id])
-  actorId     String
-  action      String
-  objectType  String?
-  objectId    String?
-  oldValue    Json?
-  newValue    Json?
-  createdAt   DateTime   @default(now())
+  id         String     @id @default(uuid())
+  companyId  String
+  datasetId  String?
+  dataset    FiDataset? @relation(fields: [datasetId], references: [id])
+  actorId    String
+  action     String
+  objectType String?
+  objectId   String?
+  oldValue   Json?
+  newValue   Json?
+  createdAt  DateTime   @default(now())
 
   @@index([companyId, datasetId])
   @@index([companyId, createdAt])
@@ -6919,8 +7324,8 @@ model RdInitiative {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  capabilities    RdCapabilityLink[]
-  feedbackItems   RdFeedbackItem[]
+  capabilities  RdCapabilityLink[]
+  feedbackItems RdFeedbackItem[]
 
   @@index([companyId, portfolioId, status])
 }
@@ -6937,21 +7342,21 @@ model RdCapability {
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
 
-  links       RdCapabilityLink[]
+  links RdCapabilityLink[]
 
   @@unique([companyId, name])
   @@index([companyId, domain])
 }
 
 model RdCapabilityLink {
-  id            String       @id @default(uuid())
-  companyId     String
-  initiativeId  String
-  initiative    RdInitiative @relation(fields: [initiativeId], references: [id])
-  capabilityId  String
-  capability    RdCapability @relation(fields: [capabilityId], references: [id])
-  createdBy     String
-  createdAt     DateTime     @default(now())
+  id           String       @id @default(uuid())
+  companyId    String
+  initiativeId String
+  initiative   RdInitiative @relation(fields: [initiativeId], references: [id])
+  capabilityId String
+  capability   RdCapability @relation(fields: [capabilityId], references: [id])
+  createdBy    String
+  createdAt    DateTime     @default(now())
 
   @@unique([initiativeId, capabilityId])
   @@index([companyId, initiativeId])
@@ -6976,19 +7381,19 @@ model RdFeedbackItem {
 }
 
 model RdResourcePlan {
-  id              String   @id @default(uuid())
-  companyId       String
-  portfolioId     String?
-  fiscalYear      Int
-  fiscalQuarter   Int?
-  allocatedMc     Int
-  forecastedMc    Int?
-  notes           String?
-  isAdvisory      Boolean  @default(true)
-  createdBy       String
-  approvedBy      String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(uuid())
+  companyId     String
+  portfolioId   String?
+  fiscalYear    Int
+  fiscalQuarter Int?
+  allocatedMc   Int
+  forecastedMc  Int?
+  notes         String?
+  isAdvisory    Boolean  @default(true)
+  createdBy     String
+  approvedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([companyId, portfolioId, fiscalYear, fiscalQuarter])
   @@index([companyId, portfolioId])
@@ -7061,18 +7466,18 @@ model AeEnterpriseObjective {
 }
 
 model AeOperatingCycle {
-  id          String                 @id @default(uuid())
-  companyId   String
-  company     Company                @relation("AeCycleCompany", fields: [companyId], references: [id])
-  period      String
-  status      AeOperatingCycleStatus @default(OPEN)
-  summary     String?
-  isAdvisory  Boolean                @default(true)
-  openedBy    String
-  closedBy    String?
-  closedAt    DateTime?
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
+  id         String                 @id @default(uuid())
+  companyId  String
+  company    Company                @relation("AeCycleCompany", fields: [companyId], references: [id])
+  period     String
+  status     AeOperatingCycleStatus @default(OPEN)
+  summary    String?
+  isAdvisory Boolean                @default(true)
+  openedBy   String
+  closedBy   String?
+  closedAt   DateTime?
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
 
   escalations AeEscalation[]
 
@@ -7081,21 +7486,21 @@ model AeOperatingCycle {
 }
 
 model AeEscalation {
-  id          String             @id @default(uuid())
+  id          String            @id @default(uuid())
   companyId   String
   cycleId     String?
-  cycle       AeOperatingCycle?  @relation(fields: [cycleId], references: [id])
-  level       AeEscalationLevel  @default(INFO)
+  cycle       AeOperatingCycle? @relation(fields: [cycleId], references: [id])
+  level       AeEscalationLevel @default(INFO)
   title       String
   description String?
   domainRef   String?
-  status      AeDecisionStatus   @default(PENDING)
+  status      AeDecisionStatus  @default(PENDING)
   raisedBy    String
   resolvedBy  String?
   resolvedAt  DateTime?
-  isAdvisory  Boolean            @default(true)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  isAdvisory  Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@index([companyId, cycleId, status])
 }
@@ -7152,4 +7557,227 @@ model AeAuditEvent {
   createdAt  DateTime @default(now())
 
   @@index([companyId, createdAt])
+}
+
+// ─── Customer Acquisition Loop (Phase 41) ──────────────────────────────
+
+model ResearchResult {
+  id                      String   @id @default(uuid())
+  companyId               String
+  company                 Company  @relation(fields: [companyId], references: [id])
+  businessName            String
+  website                 String?
+  industry                String?
+  location                String?
+  source                  String
+  sourceUrl               String?
+  contactInfo             Json? // Array of { name, email, role, phone, confidence }
+  qualificationHypothesis String?
+  confidence              Int      @default(0) // 0-100
+  evidence                Json?
+  researchedAt            DateTime @default(now())
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([companyId, businessName])
+}
+
+enum OutreachDraftStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENDING
+  SENT
+  FAILED
+}
+
+model OutreachDraft {
+  id                 String              @id @default(uuid())
+  companyId          String
+  company            Company             @relation(fields: [companyId], references: [id])
+  opportunityId      String?
+  salesLeadId        String?
+  recipientEmail     String
+  recipientName      String?
+  subject            String
+  messageBody        String
+  reasonForContact   String?
+  researchEvidence   Json?
+  proposedNextAction String?
+  riskFlags          Json?
+  status             OutreachDraftStatus @default(DRAFT)
+  approvedBy         String?
+  approvedAt         DateTime?
+  sentAt             DateTime?
+  errorMessage       String?
+  idempotencyKey     String?             @unique
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([companyId, status])
+  @@index([companyId, recipientEmail])
+}
+
+enum OutreachResponseType {
+  DELIVERED
+  BOUNCED
+  REPLIED
+  INTERESTED
+  NOT_INTERESTED
+  UNSUBSCRIBED
+}
+
+model OutreachResponse {
+  id              String               @id @default(uuid())
+  companyId       String
+  company         Company              @relation(fields: [companyId], references: [id])
+  draftId         String
+  responseType    OutreachResponseType
+  responseDetails Json?
+  recordedAt      DateTime             @default(now())
+  createdAt       DateTime             @default(now())
+
+  @@index([companyId, draftId])
+}
+
+enum DeviceType {
+  WINDOWS_DEVICE
+  ANDROID_DEVICE
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+model ConnectedDevice {
+  id         String       @id @default(uuid())
+  type       DeviceType
+  hardwareId String       @unique
+  name       String?
+  companyId  String
+  userId     String
+  status     DeviceStatus
+  lastSeen   DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+
+  company Company  @relation(fields: [companyId], references: [id])
+  user    Chairman @relation(fields: [userId], references: [id])
+}
+
+model DevicePairingRequest {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  companyId String
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+}
+
+// ─── Phase 41: World Engine ───────────────────────────────────────────────
+
+enum WeEventCategory {
+  COMMODITY_PRICE
+  FX_MOVEMENT
+  INTEREST_RATE
+  INFLATION
+  GEOPOLITICAL
+  TECHNOLOGY
+  SUPPLY_CHAIN
+  REGULATORY
+  MARKET_SHOCK
+  CUSTOM
+}
+
+enum WeEventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum WeEventSource {
+  MOCK
+  HISTORICAL
+  LIVE
+  WHAT_IF
+}
+
+enum WeIndicatorType {
+  OIL_PRICE_BRENT
+  OIL_PRICE_WTI
+  GOLD_PRICE
+  USD_INR
+  EUR_USD
+  GBP_USD
+  INTEREST_RATE_BASE
+  INFLATION_RATE
+  GDP_GROWTH
+  UNEMPLOYMENT_RATE
+  CUSTOM
+}
+
+// Raw normalized external event — describes what happened in the world
+// Never mutates company data directly
+model WeWorldEvent {
+  id             String                @id @default(cuid())
+  companyId      String
+  category       WeEventCategory
+  severity       WeEventSeverity
+  source         WeEventSource         @default(MOCK)
+  title          String
+  description    String
+  rawData        Json
+  normalizedData Json
+  idempotencyKey String
+  occurredAt     DateTime
+  processedAt    DateTime?
+  createdAt      DateTime              @default(now())
+  company        Company               @relation(fields: [companyId], references: [id])
+  indicators     WeEconomicIndicator[]
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, category])
+  @@index([companyId, occurredAt])
+}
+
+// Individual measurable data points — time series
+model WeEconomicIndicator {
+  id            String          @id @default(cuid())
+  companyId     String
+  worldEventId  String?
+  indicatorType WeIndicatorType
+  value         Float
+  unit          String
+  previousValue Float?
+  deltaPercent  Float?
+  recordedAt    DateTime
+  source        WeEventSource   @default(MOCK)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  company       Company         @relation(fields: [companyId], references: [id])
+  worldEvent    WeWorldEvent?   @relation(fields: [worldEventId], references: [id])
+
+  @@index([companyId, indicatorType, recordedAt])
+}
+
+// Current economic conditions snapshot — the live state agents read
+model WeMarketState {
+  id                    String   @id @default(cuid())
+  companyId             String   @unique
+  energyCostIndex       Float    @default(1.0)
+  usdInrRate            Float?
+  eurUsdRate            Float?
+  inflationRate         Float    @default(0.0)
+  baseInterestRate      Float    @default(0.0)
+  gdpGrowthRate         Float?
+  supplyCostIndex       Float    @default(1.0)
+  logisticsCostIndex    Float    @default(1.0)
+  consumerDemandIndex   Float    @default(1.0)
+  geopoliticalRiskScore Float    @default(0.0)
+  lastUpdatedAt         DateTime @default(now())
+  lastEventId           String?
+  tickCount             Int      @default(0)
+  company               Company  @relation(fields: [companyId], references: [id])
 }

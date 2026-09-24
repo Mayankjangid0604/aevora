@@ -1,5 +1,9 @@
 import './globals.css';
 import Sidebar from './components/Sidebar';
+import VoiceButton from './components/VoiceButton';
+import AuthGate from './components/AuthGate';
+import RealtimeToasts from './components/RealtimeToasts';
+import CeoQuestionDialog from './components/CeoQuestionDialog';
 
 export const metadata = {
   title: 'AEVORA — Chairman Control Center',
@@ -12,12 +16,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <div className="app-shell">
-          <Sidebar />
-          <main className="main-content">{children}</main>
-        </div>
+        <AuthGate>
+          <div className="app-shell">
+            <Sidebar />
+            <main className="main-content">{children}</main>
+          </div>
+          <VoiceButton />
+          <RealtimeToasts />
+          <CeoQuestionDialog />
+        </AuthGate>
       </body>
     </html>
   );

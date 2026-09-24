@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_BASE, authHeaders } from '../lib/api';
 
 interface Provider { id: string; displayName: string; providerType: string; status: string; baseUrl?: string; createdAt: string; }
 interface Model { id: string; displayName: string; modelIdentifier: string; status: string; deploymentState: string; isAdvisory: boolean; inputCostMcPerMToken?: number; outputCostMcPerMToken?: number; }
@@ -15,7 +16,7 @@ export default function ModelPlatformPage() {
   const [error, setError] = useState('');
 
   const api = (path: string, opts?: RequestInit) =>
-    fetch(`/api/model-platform${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    fetch(`${API_BASE}/model-platform${path}`, { ...opts, headers: { ...authHeaders(), ...(opts?.headers ?? {}) } });
 
   useEffect(() => {
     setLoading(true);

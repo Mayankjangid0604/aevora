@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AgentSchedulerService } from '../agent/agent-scheduler.service';
 import { WorkCycleService } from '../agent/work-cycle.service';
 import { SimulationStatus, EventStatus } from '@prisma/client';
+import { BusinessLoopService, WORK_BLOCKING_FEATURES } from './business-loop.service';
 
 @Injectable()
 export class SimulationEngineService implements OnModuleInit, OnModuleDestroy {
@@ -14,6 +15,7 @@ export class SimulationEngineService implements OnModuleInit, OnModuleDestroy {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => AgentSchedulerService)) private readonly schedulerService: AgentSchedulerService,
     @Inject(forwardRef(() => WorkCycleService)) private readonly workCycleService: WorkCycleService,
+    private readonly businessLoop: BusinessLoopService,
   ) {}
 
   onModuleInit() {
@@ -52,7 +54,10 @@ export class SimulationEngineService implements OnModuleInit, OnModuleDestroy {
         }
       });
 
-      // Schedule new events for eligible agents
+      // Business loop (survival → lead gen → sales → delivery → payments), background + throttled
+      this.businessLoop.runIfDue();
+
+      // Schedule new events for eligible agents (skips shut-down companies / paused ventures)
       await this.scheduleWorkCycles(newSimTime);
 
       // Process pending events
@@ -65,9 +70,30 @@ export class SimulationEngineService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /** Companies whose agents must not work (survival shutdown sets these kill switches), plus parked venture staff. */
+  private async workBlocks() {
+    const switches = await this.prisma.killSwitchConfig.findMany({
+      where: { feature: { in: WORK_BLOCKING_FEATURES }, isDisabled: true },
+      select: { companyId: true },
+    });
+    const parked = await this.prisma.ventureTeam.findMany({
+      where: { venture: { status: { in: ['PAUSED', 'CLOSED', 'FAILED'] } } },
+      select: { employeeId: true },
+    });
+    return {
+      global: switches.some((s) => s.companyId === null),
+      companies: new Set(switches.map((s) => s.companyId).filter(Boolean) as string[]),
+      employees: new Set(parked.map((p) => p.employeeId)),
+    };
+  }
+
   private async scheduleWorkCycles(currentTime: Date) {
-    const agents = await this.schedulerService.getEligibleAgents();
-    
+    const blocks = await this.workBlocks();
+    if (blocks.global) return;
+    const agents = (await this.schedulerService.getEligibleAgents()).filter(
+      (a) => !blocks.companies.has(a.employee.companyId) && !blocks.employees.has(a.employeeId),
+    );
+
     for (const agent of agents) {
       // Check if already an event for this agent in SCHEDULED state
       const existing = await this.prisma.simulationEvent.findFirst({
@@ -151,13 +177,52 @@ export class SimulationEngineService implements OnModuleInit, OnModuleDestroy {
       case 'EMPLOYEE_WORK_CYCLE': {
         const payload = event.payload as any;
         const agentId = payload.agentId;
-        // Direct method call! No HTTP needed.
+        // Re-check at execution time: the event may have been queued before a shutdown.
+        const agent = await this.prisma.agent.findUnique({ where: { id: agentId }, include: { employee: { select: { companyId: true } } } });
+        const blocks = await this.workBlocks();
+        if (!agent || blocks.global || blocks.companies.has(agent.employee.companyId) || blocks.employees.has(agent.employeeId)) {
+          this.logger.log(`Skipping work cycle for agent ${agentId}: blocked by kill switch or parked venture`);
+          break;
+        }
         await this.workCycleService.runWorkCycle(agentId);
         break;
       }
+      case 'WORLD_EVENT':
+        await this.handleWorldEvent(event);
+        break;
+      case 'ECONOMIC_SHOCK':
+        await this.handleEconomicShock(event);
+        break;
+      case 'MARKET_TICK':
+        await this.handleMarketTick(event);
+        break;
+      case 'LEAD_FOUND':
+        // Consumed by the sales agent loop (Step 3); acknowledged here so it is not flagged unknown.
+        this.logger.log(`Lead found: ${(event.payload as any).leadId}`);
+        break;
       default:
         this.logger.warn(`Unknown event type: ${event.type}`);
     }
+  }
+
+  private async handleWorldEvent(event: any) {
+    const payload = event.payload as any;
+    this.logger.log(`World event processed: ${payload.worldEventId} — ${payload.description}`);
+    // Advisory only — no direct company mutation
+  }
+
+  private async handleEconomicShock(event: any) {
+    const payload = event.payload as any;
+    this.logger.log(
+      `Economic shock: areas=${(payload.affectedAreas ?? []).join(',')} magnitude=${payload.magnitude}`,
+    );
+    // Log shock as a company event record if we have a companyId in payload
+    // ponytail: no company data mutation in Phase 41, extend when cost model is wired
+  }
+
+  private async handleMarketTick(event: any) {
+    const payload = event.payload as any;
+    this.logger.log(`Market tick processed with snapshot keys: ${Object.keys(payload.marketStateSnapshot ?? {}).join(',')}`);
   }
 
   async dispatchCustomEvent(companyId: string, employeeId: string | null, payload: any) {

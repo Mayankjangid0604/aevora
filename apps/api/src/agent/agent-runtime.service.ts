@@ -2,12 +2,12 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AgentContextBuilder } from './agent-context.service';
 import { AgentPolicyService } from './agent-policy.service';
-import { LocalProvider } from '@aevora/model-gateway';
+import { ModelGateway } from '@aevora/model-gateway';
 import { AgentStatus, ExecutionStatus } from '@prisma/client';
 
 @Injectable()
 export class AgentRuntimeService {
-  private localProvider = new LocalProvider();
+  private modelGateway = new ModelGateway();
 
   constructor(
     private prisma: PrismaService,
@@ -52,7 +52,7 @@ You must respond with a JSON structured output representing your actions.
 `;
 
       // 4. Call Model Gateway
-      const response = await this.localProvider.generate({
+      const response = await this.modelGateway.generate({
         prompt: prompt,
         requireStructuredOutput: true,
       });
