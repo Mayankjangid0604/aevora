@@ -60,6 +60,7 @@ import { RdFlywheelModule } from './rd-flywheel/rd-flywheel.module';
 import { AutonomousEnterpriseModule } from './autonomous-enterprise/autonomous-enterprise.module';
 import { DevicesModule } from './devices/devices.module';
 import { WorldEngineModule } from './world-engine/world-engine.module';
+import { CeoModule } from './ceo/ceo.module';
 
 @Module({
   imports: [
@@ -122,6 +123,7 @@ import { WorldEngineModule } from './world-engine/world-engine.module';
     VoiceAssistantModule,
     VenturesModule,
     WorldEngineModule,
+    CeoModule,
   ],
   controllers: [HealthController],
   providers: [],
