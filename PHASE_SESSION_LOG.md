@@ -272,6 +272,11 @@ Phase 44 Part 8 done — see PHASE44_PART8_RESULTS.md. Ready for Part 9.
 - Adapted from the spec: `DEPARTMENTS` instead of the nonexistent `ROOMS`; `/chairman/world` instead of `GET /simulation`; one app + one ticker instead of a rebuild per refresh.
 - Web tsc 0; next build OK; checked on :3001 with a mocked API. Verdict: not ready to replace /world (see `PHASE44_PART10_RESULTS.md`).
 
+### Phase 44 Part 11 — Real 3D office at /world
+- `/world` now embeds `public/office/Aevora_Office_3D_v3.html` (Claude Design's procedural Three.js office, from main) in an iframe. It has a postMessage bridge (OFFICE_READY / CLICK_ROOM / ROOM_ENTER → page; FOCUS_ZONE → office; same-origin only) and a live-data panel for rooms and their employees.
+- Recreated the missing `office/three-d-stage.js` stage wrapper and a minimal `office/_ds/nocturne/styles.css`. The GLB isn't needed (Drive and unpkg are blocked here anyway).
+- The CSS 3D building moved to `/world-classic` as the fallback. Web tsc 0; build OK; verified in headless Chromium (software GL). See `PHASE44_PART11_RESULTS.md`.
+
 ## What to do next session
 Phase 43 is code-complete. Live run: `cd packages/database && npx prisma migrate deploy` (Phase 42 steps 2–7 + Phase 43 steps 1–4, 6; 43-5 had no migration), ensure a CEO + a sales employee exist, deposit, start the simulation, watch `CeoReviewService` logs; try `POST /ceo/reviews/run` and `POST /ceo/ask`. Keep `OUTREACH_ENVIRONMENT=SANDBOX` until reviews look sane.
 

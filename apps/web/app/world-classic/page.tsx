@@ -1,9 +1,6 @@
 'use client';
 
-// Option C preview: PixiJS (WebGL) office. /world keeps the CSS 3D building until this is approved.
-
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Pause, Play } from '@phosphor-icons/react';
 import { chairmanFetch } from '../lib/api';
@@ -14,18 +11,18 @@ interface WorldData {
   employees: WorldEmployee[];
 }
 
-const PixiOffice = dynamic(() => import('../world/PixiOffice'), {
+const Building3D = dynamic(() => import('../world/Building3D'), {
   ssr: false,
-  loading: () => <div className="state-loading" style={{ height: 600 }}>Initializing AEVORA HQ…</div>,
+  loading: () => <div className="state-loading" style={{ height: 480 }}>Loading building…</div>,
 });
 
 const TIPS = [
-  { title: 'Click a room', desc: 'Department details, everyone inside, and its live figures.' },
-  { title: 'Click an employee', desc: 'Name, role, department and current task. Figures animate by activity.' },
-  { title: 'Live screens', desc: 'Wall screens show balance, survival status, open leads and open projects, refreshed every 15 seconds.' },
+  { title: 'Click a floor', desc: 'Click a floor label on the left to expand it; click again to collapse.' },
+  { title: 'Click a room or person', desc: 'See the department and its live figures, or an employee’s role and current task.' },
+  { title: 'Chat bubbles', desc: "The CEO's current task appears as a speech bubble in the CEO office." },
 ];
 
-export default function WorldPixiPage() {
+export default function WorldPage() {
   const [data, setData] = useState<WorldData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,12 +50,14 @@ export default function WorldPixiPage() {
     setBusy(false);
   }
 
+  const people = data?.employees.filter((e) => e.status !== 'TERMINATED') ?? [];
+
   return (
     <>
       <div className="page-header flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
-          <h1 className="page-title">Company World</h1>
-          <p className="page-desc">PixiJS WebGL rendering — Option C preview</p>
+          <h1 className="page-title">Company World — classic</h1>
+          <p className="page-desc">{people.length} employees across 4 floors — click a floor to expand it, a room or person for details</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span className={`badge ${status === 'RUNNING' ? 'badge-success' : 'badge-neutral'}`}>{status.toLowerCase()}</span>
@@ -73,7 +72,7 @@ export default function WorldPixiPage() {
 
       {error && <div className="state-error" style={{ marginBottom: 'var(--space-4)' }}>{error}</div>}
 
-      {data ? <PixiOffice employees={data.employees} /> : <div className="state-loading" style={{ height: 600 }}>Initializing AEVORA HQ…</div>}
+      {data ? <Building3D employees={data.employees} /> : <div className="state-loading" style={{ height: 480 }}>Loading building…</div>}
 
       <section className="section" style={{ marginTop: 'var(--space-6)' }}>
         <div className="section-title">How to use</div>
@@ -84,14 +83,6 @@ export default function WorldPixiPage() {
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-3)' }}>{tip.desc}</div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="section" style={{ marginTop: 'var(--space-6)' }}>
-        <div className="section-title">Compare versions</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <Link href="/world-classic" className="btn btn-secondary">View Option B (CSS 3D)</Link>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-3)' }}>Option C is this page (PixiJS WebGL)</span>
         </div>
       </section>
     </>
