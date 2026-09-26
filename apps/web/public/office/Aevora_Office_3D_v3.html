@@ -991,6 +991,39 @@ function renderReflection() {
   for (const f of floorMeshes) f.visible = true; fxGroup.visible = true; stage._ground.visible = true; plaza.visible = true;
 }
 
+// ---------- AEVORA dashboard bridge (postMessage, same origin only) ----------
+const PARENT = window.parent !== window ? window.parent : null;
+const zoneKey = n => n.toUpperCase().replace(/[^A-Z]+/g, '_').replace(/^_|_$/g, '');
+function aevoraNotify(type, data) { if (PARENT) PARENT.postMessage({ source: 'aevora-office', type, data }, location.origin); }
+function zoneOfMesh(o) {
+  for (; o; o = o.parent) { const n = o.name || '', i = n.indexOf('__'); if (i > 0) return zoneKey(n.slice(0, i)); }
+  return null;
+}
+const NOT_A_ROOM = new Set(['SHELL', 'CEILING', 'FX']);
+const pickRay = new THREE.Raycaster(), pickNdc = new THREE.Vector2();
+let pickDown = null;
+stage.addEventListener('pointerdown', e => { pickDown = { x: e.clientX, y: e.clientY }; });
+stage.addEventListener('pointerup', e => {
+  if (!pickDown || Math.hypot(e.clientX - pickDown.x, e.clientY - pickDown.y) > 5) { pickDown = null; return; }
+  pickDown = null;
+  const r = renderer.domElement.getBoundingClientRect();
+  // Walk mode picks what the crosshair is on; overview picks under the pointer.
+  if (walking) pickNdc.set(0, 0); else pickNdc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  pickRay.setFromCamera(pickNdc, cam);
+  const shown = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; }; // hidden ceiling in overview
+  const hit = pickRay.intersectObject(root, true).find(h => shown(h.object));
+  const key = hit && zoneOfMesh(hit.object);
+  if (key && !NOT_A_ROOM.has(key)) aevoraNotify('CLICK_ROOM', { key, name: ZONES.find(z => zoneKey(z.name) === key)?.name || key.replace(/_/g, ' ') });
+});
+addEventListener('message', e => {
+  if (e.origin !== location.origin || e.source !== PARENT || !e.data || e.data.target !== 'aevora-office') return;
+  if (e.data.type === 'FOCUS_ZONE') {
+    const i = ZONES.findIndex(z => zoneKey(z.name) === e.data.data?.key);
+    if (i >= 0) { ui.zone.value = String(i); ui.zone.onchange(); }
+  }
+});
+aevoraNotify('OFFICE_READY', { zones: ZONES.map(z => ({ key: zoneKey(z.name), name: z.name })) });
+
 let last = performance.now(), lastZone = '';
 const orig = stage._loop;
 const loop = () => {
@@ -1015,7 +1048,7 @@ const loop = () => {
     cam.rotation.set(pitch, yaw, 0, 'YXZ'); cam.updateMatrixWorld();
     const z = ZONES.slice().reverse().find(z => p.x >= z.rect[0] && p.x <= z.rect[1] && p.z >= z.rect[2] && p.z <= z.rect[3]);
     const label = z ? z.name : 'Main concourse';
-    if (label !== lastZone) { ui.where.textContent = label; lastZone = label; }
+    if (label !== lastZone) { ui.where.textContent = label; lastZone = label; aevoraNotify('ROOM_ENTER', { key: zoneKey(label), name: label }); }
     renderReflection();
     renderer.render(scene, cam);
   } else {

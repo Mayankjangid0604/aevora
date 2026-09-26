@@ -256,6 +256,27 @@ Phase 44 Part 8 done — see PHASE44_PART8_RESULTS.md. Ready for Part 9.
 - Mobile: `ceo.question` → notification (title marks urgent) → `CeoQuestionScreen` answer modal (also opens immediately if the app is in the foreground); "❓ Your CEO is asking (n)" card at the top of home.
 - API tsc; 42 suites / 129 tests; boot OK (routes mapped). Web next build OK. Mobile bundles.
 
+### Phase 44 Part 8B — Company World redesign
+- `/world` is now a 4-floor building cutaway (`world/IsometricOffice.tsx` → `CompanyBuilding`, data in `world/office-layout.ts`: 18 departments). Perspective floors, animated people seated by role (fallback by department), CEO glow + current-task bubble, AEVORA globe in Reception, live Finance balance / Reception status / Sales lead count on room displays. Click a room or a person for a side panel.
+- Deleted the old `EmployeeCharacter.tsx` and the orphaned lucide-based `AskCeoCard`, `CeoActivityCard`, `components/world/*` that broke `next build`.
+- Web tsc 0 errors; next build OK; rendered on :3001 with a mocked API. See `PHASE44_PART8B_RESULTS.md`.
+
+### Phase 44 Part 9 — CSS 3D building (Option B)
+- `/world` now renders `world/Building3D.tsx` (+ `Building3D.module.css`). It's a CSS-3D dollhouse: tilted stage, open-fronted rooms with back wall/floor/side walls, floors narrowing upward on a "SAAHVIK TECH" plinth, "AEVORA HQ" header with live counts, floor labels on the left (click to expand/collapse a floor), blinking wall screens with live values, animated people at desks, CEO glow + task bubble, reception globe. Click a room or person for the right-hand panel; Esc closes it.
+- The Part 9 prompt was missing Steps 1–2, so the component was designed from the Step 4 checklist (the user chose this).
+- The shared room/employee helpers moved into `world/office-layout.ts`, and live screen data into `world/useLiveValues.ts`. `IsometricOffice.tsx` (Part 8B) is unrendered but kept for option comparison.
+- Web tsc 0 errors; next build OK; checked on `npm run dev` :3001 with a mocked API. See `PHASE44_PART9_RESULTS.md`.
+
+### Phase 44 Part 10 — PixiJS office (Option C)
+- `pixi.js@7.4.3` added to apps/web. `world/pixi-assets.ts` has the sprite helpers; `world/PixiOffice.tsx` is the WebGL cutaway (18 rooms, warm lights, blinking live screens, animated people, reception globe, room/person panels). The preview is at `/world-pixi`; `/world` still renders Building3D (untouched).
+- Adapted from the spec: `DEPARTMENTS` instead of the nonexistent `ROOMS`; `/chairman/world` instead of `GET /simulation`; one app + one ticker instead of a rebuild per refresh.
+- Web tsc 0; next build OK; checked on :3001 with a mocked API. Verdict: not ready to replace /world (see `PHASE44_PART10_RESULTS.md`).
+
+### Phase 44 Part 11 — Real 3D office at /world
+- `/world` now embeds `public/office/Aevora_Office_3D_v3.html` (Claude Design's procedural Three.js office, from main) in an iframe. It has a postMessage bridge (OFFICE_READY / CLICK_ROOM / ROOM_ENTER → page; FOCUS_ZONE → office; same-origin only) and a live-data panel for rooms and their employees.
+- Recreated the missing `office/three-d-stage.js` stage wrapper and a minimal `office/_ds/nocturne/styles.css`. The GLB isn't needed (Drive and unpkg are blocked here anyway).
+- The CSS 3D building moved to `/world-classic` as the fallback. Web tsc 0; build OK; verified in headless Chromium (software GL). See `PHASE44_PART11_RESULTS.md`.
+
 ## What to do next session
 Phase 43 is code-complete. Live run: `cd packages/database && npx prisma migrate deploy` (Phase 42 steps 2–7 + Phase 43 steps 1–4, 6; 43-5 had no migration), ensure a CEO + a sales employee exist, deposit, start the simulation, watch `CeoReviewService` logs; try `POST /ceo/reviews/run` and `POST /ceo/ask`. Keep `OUTREACH_ENVIRONMENT=SANDBOX` until reviews look sane.
 
