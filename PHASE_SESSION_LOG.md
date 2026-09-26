@@ -267,6 +267,11 @@ Phase 44 Part 8 done — see PHASE44_PART8_RESULTS.md. Ready for Part 9.
 - The shared room/employee helpers moved into `world/office-layout.ts`, and live screen data into `world/useLiveValues.ts`. `IsometricOffice.tsx` (Part 8B) is unrendered but kept for option comparison.
 - Web tsc 0 errors; next build OK; checked on `npm run dev` :3001 with a mocked API. See `PHASE44_PART9_RESULTS.md`.
 
+### Phase 44 Part 10 — PixiJS office (Option C)
+- `pixi.js@7.4.3` added to apps/web. `world/pixi-assets.ts` has the sprite helpers; `world/PixiOffice.tsx` is the WebGL cutaway (18 rooms, warm lights, blinking live screens, animated people, reception globe, room/person panels). The preview is at `/world-pixi`; `/world` still renders Building3D (untouched).
+- Adapted from the spec: `DEPARTMENTS` instead of the nonexistent `ROOMS`; `/chairman/world` instead of `GET /simulation`; one app + one ticker instead of a rebuild per refresh.
+- Web tsc 0; next build OK; checked on :3001 with a mocked API. Verdict: not ready to replace /world (see `PHASE44_PART10_RESULTS.md`).
+
 ## What to do next session
 Phase 43 is code-complete. Live run: `cd packages/database && npx prisma migrate deploy` (Phase 42 steps 2–7 + Phase 43 steps 1–4, 6; 43-5 had no migration), ensure a CEO + a sales employee exist, deposit, start the simulation, watch `CeoReviewService` logs; try `POST /ceo/reviews/run` and `POST /ceo/ask`. Keep `OUTREACH_ENVIRONMENT=SANDBOX` until reviews look sane.
 
