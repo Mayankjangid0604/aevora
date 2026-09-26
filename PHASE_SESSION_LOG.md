@@ -256,6 +256,11 @@ Phase 44 Part 8 done — see PHASE44_PART8_RESULTS.md. Ready for Part 9.
 - Mobile: `ceo.question` → notification (title marks urgent) → `CeoQuestionScreen` answer modal (also opens immediately if the app is in the foreground); "❓ Your CEO is asking (n)" card at the top of home.
 - API tsc; 42 suites / 129 tests; boot OK (routes mapped). Web next build OK. Mobile bundles.
 
+### Phase 44 Part 8B — Company World redesign
+- `/world` is now a 4-floor building cutaway (`world/IsometricOffice.tsx` → `CompanyBuilding`, data in `world/office-layout.ts`: 18 departments). Perspective floors, animated people seated by role (fallback by department), CEO glow + current-task bubble, AEVORA globe in Reception, live Finance balance / Reception status / Sales lead count on room displays. Click a room or a person for a side panel.
+- Deleted the old `EmployeeCharacter.tsx` and the orphaned lucide-based `AskCeoCard`, `CeoActivityCard`, `components/world/*` that broke `next build`.
+- Web tsc 0 errors; next build OK; rendered on :3001 with a mocked API. See `PHASE44_PART8B_RESULTS.md`.
+
 ## What to do next session
 Phase 43 is code-complete. Live run: `cd packages/database && npx prisma migrate deploy` (Phase 42 steps 2–7 + Phase 43 steps 1–4, 6; 43-5 had no migration), ensure a CEO + a sales employee exist, deposit, start the simulation, watch `CeoReviewService` logs; try `POST /ceo/reviews/run` and `POST /ceo/ask`. Keep `OUTREACH_ENVIRONMENT=SANDBOX` until reviews look sane.
 

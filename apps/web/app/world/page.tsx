@@ -13,13 +13,13 @@ interface WorldData {
 
 const IsometricOffice = dynamic(() => import('./IsometricOffice'), {
   ssr: false,
-  loading: () => <div className="state-loading" style={{ height: 480 }}>Loading office…</div>,
+  loading: () => <div className="state-loading" style={{ height: 480 }}>Loading building…</div>,
 });
 
 const TIPS = [
   { title: 'Click an employee', desc: 'See their role, department and current task.' },
-  { title: 'Walk to CEO', desc: 'Send the selected employee to the CEO office and back.' },
-  { title: 'Chat bubbles', desc: 'New CEO actions appear as a speech bubble above ARIA.' },
+  { title: 'Click a room', desc: 'See the department, who works there and its live figures.' },
+  { title: 'Chat bubbles', desc: "The CEO's current task appears as a speech bubble in the CEO office." },
 ];
 
 export default function WorldPage() {
@@ -57,7 +57,7 @@ export default function WorldPage() {
       <div className="page-header flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
           <h1 className="page-title">Company World</h1>
-          <p className="page-desc">{people.length} employees — click any person to see their work</p>
+          <p className="page-desc">{people.length} employees across 4 floors — click a room or a person for details</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <span className={`badge ${status === 'RUNNING' ? 'badge-success' : 'badge-neutral'}`}>{status.toLowerCase()}</span>
@@ -72,7 +72,7 @@ export default function WorldPage() {
 
       {error && <div className="state-error" style={{ marginBottom: 'var(--space-4)' }}>{error}</div>}
 
-      {data ? <IsometricOffice employees={data.employees} /> : <div className="state-loading" style={{ height: 480 }}>Loading office…</div>}
+      {data ? <IsometricOffice employees={data.employees} /> : <div className="state-loading" style={{ height: 480 }}>Loading building…</div>}
 
       <section className="section" style={{ marginTop: 'var(--space-6)' }}>
         <div className="section-title">How to use</div>
