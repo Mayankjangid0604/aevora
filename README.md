@@ -36,4 +36,9 @@ aevora/
 ```
 
 ## Getting Started
-(Development commands will be added as the monorepo is scaffolded in subsequent steps.)
+Copy `.env.example` to `.env`, then run `start.bat` (Windows) or `npm run dev`.
+
+| Service | URL |
+|---------|-----|
+| API     | http://localhost:13000 (`PORT_API`, health at `/health`) |
+| Web     | http://localhost:3001 |

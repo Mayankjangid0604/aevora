@@ -22,7 +22,7 @@ export function extractHtml(text: string): string {
 }
 
 export function sampleUrl(projectId: string) {
-  const base = process.env.PUBLIC_API_URL ?? 'http://localhost:3000';
+  const base = process.env.PUBLIC_API_URL ?? 'http://localhost:13000';
   return `${base}/delivery/samples/${projectId}`;
 }
 

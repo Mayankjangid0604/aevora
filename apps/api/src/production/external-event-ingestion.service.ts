@@ -22,14 +22,18 @@ export class ExternalEventIngestionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly structuredLogger: StructuredLoggerService
-  ) {}
+  ) {
+    for (const k of ['WEBHOOK_SECRET_PROD', 'WEBHOOK_SECRET_SIM']) {
+      if (!process.env[k]) throw new Error(`${k} is not set; refusing to start without a webhook secret`);
+    }
+  }
 
   async ingestEvent(data: ExternalEventPayload, companyId?: string): Promise<any> {
     const { provider, eventType, payload, signature, correlationId, environment = ExecutionEnvironment.SIMULATION } = data;
 
     const secret = environment === ExecutionEnvironment.PRODUCTION
-      ? (process.env.WEBHOOK_SECRET_PROD || 'prod_secret')
-      : (process.env.WEBHOOK_SECRET_SIM || 'sim_secret');
+      ? process.env.WEBHOOK_SECRET_PROD!
+      : process.env.WEBHOOK_SECRET_SIM!;
 
     if (!signature) {
       throw new SignatureMismatchError('Missing webhook signature');

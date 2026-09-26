@@ -29,8 +29,8 @@ echo  ================================================
 echo   AEVORA is starting up...
 echo.
 echo   Dashboard: http://localhost:3001
-echo   API:       http://localhost:3000
-echo   Health:    http://localhost:3000/health
+echo   API:       http://localhost:13000
+echo   Health:    http://localhost:13000/health
 echo.
 echo   Login: jangidmayank768@gmail.com
 echo  ================================================

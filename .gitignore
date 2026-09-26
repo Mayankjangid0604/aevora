@@ -19,3 +19,10 @@ Thumbs.db
 briefs/pending/*.md
 
 
+
+# build / generated artifacts
+*.tsbuildinfo
+/tree.txt
+apps/api/.temp/
+__pycache__/
+*.pyc

@@ -29,7 +29,7 @@
 ## Manual Steps Remaining
 1. Add your Gmail App Password to `.env` (Replace `SMTP_PASS`).
 2. Run `start.bat` in the root directory to launch the API and Web Dashboard.
-3. Open Chrome at http://localhost:3001 and login with `jangidmayank768@gmail.com` and password `Mayank@00`.
+3. Open Chrome at http://localhost:3001 and login with `jangidmayank768@gmail.com` and password `<set during setup>`.
 4. Navigate to `/survival` and deposit ₹5,000.
 5. Navigate to `/simulation` and click "Start" to launch the business loop.
 
