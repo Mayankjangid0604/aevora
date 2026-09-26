@@ -51,3 +51,77 @@ export const FLOOR_NAMES = [
   'Executive Floor',
   'Command Floor',
 ];
+
+/** Rooms on a floor in left → right order. */
+export const POSITION_ORDER: Department['position'][] = ['left', 'center-left', 'center', 'center-right', 'right'];
+
+export function roomsOnFloor(level: number): Department[] {
+  const rooms = DEPARTMENTS.filter((d) => d.floorLevel === level);
+  return POSITION_ORDER.flatMap((p) => rooms.filter((r) => r.position === p));
+}
+
+/** Employee as returned by GET /chairman/world. */
+export interface WorldEmployee {
+  id: string;
+  name: string;
+  role: string | null;
+  departmentName: string | null;
+  status: string;
+  activity: string;
+  currentTaskTitle: string | null;
+}
+
+const DEPT_COLORS: Record<string, string> = {
+  Executive: '#6366F1',
+  Sales: '#10B981',
+  Development: '#3B82F6',
+  Marketing: '#F59E0B',
+  Management: '#8B5CF6',
+  'New Ventures': '#EF4444',
+  'Customer Support': '#F97316',
+  'Human Resources': '#A78BFA',
+};
+
+/** Fallback room for employees whose role title matches no room's role list. */
+const ROOM_FOR_DEPARTMENT: Record<string, string> = {
+  Executive: 'ceo',
+  Sales: 'sales',
+  Development: 'engineering',
+  Marketing: 'marketing',
+  Management: 'projects',
+  'New Ventures': 'product',
+  'Customer Support': 'support',
+  'Human Resources': 'hr',
+  Finance: 'finance',
+};
+
+export function getEmployeeColor(dept: string | null): string {
+  if (!dept) return '#6366F1';
+  return DEPT_COLORS[dept] ?? (dept.startsWith('Venture') ? DEPT_COLORS['New Ventures'] : '#6366F1');
+}
+
+export const isCeo = (e: WorldEmployee) => /\b(ceo|chief executive)\b/i.test(e.role ?? '');
+
+/** Each employee lands in exactly one room: CEO → CEO office, then role match, then department fallback. */
+export function roomIdFor(e: WorldEmployee): string | null {
+  if (isCeo(e)) return 'ceo';
+  const role = (e.role ?? '').toLowerCase();
+  if (role) {
+    const hit = DEPARTMENTS.find((d) => d.employeeRoles.some((r) => role.includes(r.toLowerCase()) || r.toLowerCase().includes(role)));
+    if (hit) return hit.id;
+  }
+  const dept = e.departmentName ?? '';
+  return ROOM_FOR_DEPARTMENT[dept] ?? (dept.startsWith('Venture') ? 'product' : null);
+}
+
+/** Employees per room id (sorted by name), plus those that match no room. */
+export function groupByRoom(employees: WorldEmployee[]): { byRoom: Map<string, WorldEmployee[]>; unplaced: WorldEmployee[] } {
+  const byRoom = new Map<string, WorldEmployee[]>();
+  const unplaced: WorldEmployee[] = [];
+  for (const e of [...employees].sort((a, b) => a.name.localeCompare(b.name))) {
+    const id = roomIdFor(e);
+    if (id) byRoom.set(id, [...(byRoom.get(id) ?? []), e]);
+    else unplaced.push(e);
+  }
+  return { byRoom, unplaced };
+}

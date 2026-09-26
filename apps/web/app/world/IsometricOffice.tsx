@@ -4,60 +4,11 @@
 
 import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import { chairmanFetch } from '../lib/api';
-import { DEPARTMENTS, FLOOR_NAMES, type Department } from './office-layout';
+import {
+  FLOOR_NAMES, getEmployeeColor, groupByRoom, isCeo, roomsOnFloor, type Department, type WorldEmployee,
+} from './office-layout';
 
-export interface WorldEmployee {
-  id: string;
-  name: string;
-  role: string | null;
-  departmentName: string | null;
-  status: string;
-  activity: string;
-  currentTaskTitle: string | null;
-}
-
-const DEPT_COLORS: Record<string, string> = {
-  Executive: '#6366F1',
-  Sales: '#10B981',
-  Development: '#3B82F6',
-  Marketing: '#F59E0B',
-  Management: '#8B5CF6',
-  'New Ventures': '#EF4444',
-  'Customer Support': '#F97316',
-  'Human Resources': '#A78BFA',
-};
-
-/** Fallback room for employees whose role title matches no room's role list. */
-const ROOM_FOR_DEPARTMENT: Record<string, string> = {
-  Executive: 'ceo',
-  Sales: 'sales',
-  Development: 'engineering',
-  Marketing: 'marketing',
-  Management: 'projects',
-  'New Ventures': 'product',
-  'Customer Support': 'support',
-  'Human Resources': 'hr',
-  Finance: 'finance',
-};
-
-function getEmployeeColor(dept: string | null): string {
-  if (!dept) return '#6366F1';
-  return DEPT_COLORS[dept] ?? (dept.startsWith('Venture') ? DEPT_COLORS['New Ventures'] : '#6366F1');
-}
-
-const isCeo = (e: WorldEmployee) => /\b(ceo|chief executive)\b/i.test(e.role ?? '');
-
-/** Each employee lands in exactly one room: CEO → CEO office, then role match, then department fallback. */
-function roomIdFor(e: WorldEmployee): string | null {
-  if (isCeo(e)) return 'ceo';
-  const role = (e.role ?? '').toLowerCase();
-  if (role) {
-    const hit = DEPARTMENTS.find((d) => d.employeeRoles.some((r) => role.includes(r.toLowerCase()) || r.toLowerCase().includes(role)));
-    if (hit) return hit.id;
-  }
-  const dept = e.departmentName ?? '';
-  return ROOM_FOR_DEPARTMENT[dept] ?? (dept.startsWith('Venture') ? 'product' : null);
-}
+export type { WorldEmployee };
 
 // Tiny animated person
 function Person({ x, y, color, activity, selected, onClick }: {
@@ -245,13 +196,11 @@ const FLOOR_Y = [
 // Perspective: floors narrow going up
 const FLOOR_W = [W - 20, W - 60, W - 120, W - 200];
 const FLOOR_X = [10, 30, 60, 100];
-const POSITION_ORDER: Department['position'][] = ['left', 'center-left', 'center', 'center-right', 'right'];
 
 interface PlacedRoom { dept: Department; x: number; y: number; w: number; h: number }
 
 function layoutFloor(level: number): PlacedRoom[] {
-  const rooms = DEPARTMENTS.filter((d) => d.floorLevel === level);
-  const sorted = POSITION_ORDER.flatMap((p) => rooms.filter((r) => r.position === p));
+  const sorted = roomsOnFloor(level);
   const gap = 6;
   const fw = FLOOR_W[level];
   const hasCenter = sorted.some((r) => r.position === 'center');
@@ -305,12 +254,7 @@ export default function CompanyBuilding({ employees: allEmployees }: { employees
     return () => clearInterval(t);
   }, [loadLiveValues]);
 
-  const byRoom = new Map<string, WorldEmployee[]>();
-  for (const e of [...employees].sort((a, b) => a.name.localeCompare(b.name))) {
-    const id = roomIdFor(e);
-    if (id) byRoom.set(id, [...(byRoom.get(id) ?? []), e]);
-  }
-  const unplaced = employees.filter((e) => !roomIdFor(e));
+  const { byRoom, unplaced } = groupByRoom(employees);
 
   // The CEO's current task shows as a speech bubble.
   const ceo = employees.find(isCeo);
