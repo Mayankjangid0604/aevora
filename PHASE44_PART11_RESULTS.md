@@ -36,5 +36,5 @@ Employee click: YES from the room panel's list. People aren't individually click
 
 ## Known issues
 - The GLB isn't used. To use it later (e.g. a lighter file than building procedurally), host it somewhere the browser can reach; Drive direct links are rate-limited.
-- Needs unpkg.com reachable in the user's browser (or vendor three@0.184 into `public/`).
+- Three.js 0.184 is vendored in `public/office/three/` (no CDN needed).
 - Heavy on low-end devices; `/world-classic` is linked from the page as the lighter view.
